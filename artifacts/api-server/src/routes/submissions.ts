@@ -1,27 +1,22 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { supabaseAdmin } from "../lib/supabase";
 import { logger } from "../lib/logger";
 
 const router = Router();
 
-// POST /submissions — create or replace submission for a specific entry
+// POST /submissions â€” create or replace submission for a specific entry
 router.post("/submissions", async (req, res) => {
-  const { participant_id, entry_id, image_url, ig_post_url } = req.body as {
+  const { participant_id, entry_id, image_url, ig_tag_confirmed } = req.body as {
     participant_id?: string;
     entry_id?: string;
     image_url?: string;
-    ig_post_url?: string;
+    ig_tag_confirmed?: boolean;
   };
 
-  if (!participant_id || !entry_id || !image_url || !ig_post_url) {
-    res
-      .status(400)
-      .json({ error: "participant_id, entry_id, image_url, ig_post_url are required" });
-    return;
-  }
-
-  if (!ig_post_url.includes("instagram.com")) {
-    res.status(400).json({ error: "ig_post_url must be an Instagram URL" });
+  if (!participant_id || !entry_id || !image_url || ig_tag_confirmed !== true) {
+    res.status(400).json({
+      error: "Konfirmasi upload Instagram dan tag @ai.gypt wajib dicentang"
+    });
     return;
   }
 
@@ -72,7 +67,8 @@ router.post("/submissions", async (req, res) => {
       participant_id,
       entry_id,
       image_url,
-      ig_post_url,
+      ig_post_url: null,
+      ig_tag_confirmed: true,
       status: "pending",
     })
     .select("id, entry_id, participant_id, image_url, ig_post_url, status, winner_category, created_at")
@@ -114,3 +110,4 @@ router.get("/submissions/by-participant/:participantId", async (req, res) => {
 });
 
 export default router;
+

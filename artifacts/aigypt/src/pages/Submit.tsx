@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +13,9 @@ import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
-  ig_post_url: z.string().url('URL tidak valid').includes('instagram.com', { message: 'Harus berupa link Instagram' }),
+  ig_tag_confirmed: z.literal(true, {
+    errorMap: () => ({ message: 'Centang konfirmasi bahwa kamu sudah tag @ai.gypt' }),
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -33,12 +35,12 @@ export default function Submit() {
     query: {
       enabled: !!participantId && !activeEntryId,
       queryKey: ['participant-submit', participantId!],
-      // 404 = ID di localStorage sudah tidak ada di database → jangan retry
+      // 404 = ID di localStorage sudah tidak ada di database â†’ jangan retry
       retry: (failureCount, err) => (err as any)?.status !== 404 && failureCount < 2,
     }
   });
 
-  // ID peserta di localStorage sudah tidak ada di database → bersihkan sesi
+  // ID peserta di localStorage sudah tidak ada di database â†’ bersihkan sesi
   // lama dan arahkan ke /join.
   // Guard: jangan redirect kalau query lagi fetching ulang (cached error dari
   // sesi sebelumnya bisa muncul sebelum request baru selesai).
@@ -69,7 +71,7 @@ export default function Submit() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { ig_post_url: '' },
+    defaultValues: { ig_tag_confirmed: false as true },
   });
 
   const compressImage = (file: File): Promise<Blob> => {
@@ -159,7 +161,8 @@ export default function Submit() {
           participant_id: participantId,
           entry_id: resolvedEntryId,
           image_url: publicUrl,
-          ig_post_url: data.ig_post_url,
+          ig_post_url: null,
+          ig_tag_confirmed: data.ig_tag_confirmed,
         }
       });
 
@@ -235,19 +238,28 @@ export default function Submit() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-foreground flex items-center gap-2">Link Postingan Instagram</label>
-            <input
-              {...form.register('ig_post_url')}
-              className="w-full bg-input border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary transition-all text-[16px]"
-              placeholder="https://instagram.com/p/..."
-              inputMode="url"
-              autoComplete="off"
-            />
-            {form.formState.errors.ig_post_url && (
-              <p className="text-xs text-destructive">{form.formState.errors.ig_post_url.message}</p>
+          <div className="space-y-3">
+            <label className="flex items-start gap-3 p-4 bg-card border border-border rounded-xl cursor-pointer">
+              <input
+                type="checkbox"
+                {...form.register('ig_tag_confirmed')}
+                className="mt-1 w-5 h-5 accent-primary shrink-0"
+              />
+              <span>
+                <span className="block text-sm font-bold text-foreground">
+                  Saya sudah upload ke Instagram dan tag @ai.gypt
+                </span>
+                <span className="block text-xs text-muted-foreground mt-1">
+                  Admin akan mengecek tag melalui username Instagram yang kamu daftarkan.
+                </span>
+              </span>
+            </label>
+
+            {form.formState.errors.ig_tag_confirmed && (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.ig_tag_confirmed.message}
+              </p>
             )}
-            <p className="text-xs text-muted-foreground">Copy link post dari aplikasi Instagram.</p>
           </div>
 
           <button
@@ -264,3 +276,4 @@ export default function Submit() {
     </div>
   );
 }
+
