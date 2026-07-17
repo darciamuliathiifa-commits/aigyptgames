@@ -117,7 +117,7 @@ function TabVerifikasi() {
     updateMutation.mutate({ id, data: { status } }, {
       onSuccess: () => {
         toast({ title: `Berhasil di-${status}` });
-        queryClient.invalidateQueries({ queryKey: ['/api/admin/submissions'] });
+        setTimeout(() => window.location.reload(), 400);
       }
     });
   };
@@ -684,4 +684,5 @@ function TabLeads() {
     </div>
   );
 }
+
 
