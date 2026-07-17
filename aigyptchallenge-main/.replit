@@ -1,0 +1,31 @@
+modules = ["nodejs-20", "web", "bash"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
+[agent]
+stack = "PNPM_WORKSPACE"
+expertMode = true
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[nix]
+channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1dmN4YXRqZW1naHpqeG52eHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyMjU0OTIsImV4cCI6MjA5OTgwMTQ5Mn0.8YdBJWUOxgF7FEpBfaVl-jG6BvkTPW6KdFLuH2bRwfQ"
+NEXT_PUBLIC_SUPABASE_URL = "https://cuvcxatjemghzjxnvxuf.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1dmN4YXRqZW1naHpqeG52eHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyMjU0OTIsImV4cCI6MjA5OTgwMTQ5Mn0.8YdBJWUOxgF7FEpBfaVl-jG6BvkTPW6KdFLuH2bRwfQ"
+VITE_SUPABASE_URL = "https://cuvcxatjemghzjxnvxuf.supabase.co"

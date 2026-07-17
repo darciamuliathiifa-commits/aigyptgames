@@ -1,0 +1,71 @@
+# UPDATE REQUEST: AIGYPT Poster Challenge — Multi-Entry (Maks 3 Karya per Email)
+
+Website sudah live. JANGAN rombak fitur yang sudah jalan di luar scope ini. Perubahan inti: satu peserta boleh ikut sampai 3 kali, identitas akun pakai email, tiap percobaan dapat gacha anomali baru.
+
+## 1. Konsep
+
+- **Akun = email.** Registrasi sekarang: nama + email + IG handle (+ checkbox info kelas). Email unik per peserta.
+- **Entry = satu percobaan** (satu gacha + satu karya). Maksimal **3 entry per akun**, dicek di SERVER (bukan cuma UI).
+- Tiap entry menarik kartu anomali BARU saat dimulai — boleh dapat kartu yang sama dengan entry sebelumnya (murni random).
+- Voting per karya seperti sekarang; satu orang bisa punya sampai 3 karya di galeri/leaderboard sekaligus, masing-masing dengan vote sendiri.
+- **Hadiah AINA tetap 1 kode basic per AKUN** (bukan per karya) — syaratnya minimal satu entry berstatus `verified`. Klaim tetap idempotent. Juara: dinilai per KARYA, kode premium ke akun pemiliknya (kalau satu orang menang 2 kategori, tetap dapat sesuai jumlah kemenangan kategori).
+
+## 2. Perubahan Database (`supabase/migration_v3.sql` — gue jalankan manual)
+
+```sql
+alter table participants add column email text;
+create unique index participants_email_unique on participants (lower(email));
+
+create table entries (
+  id uuid primary key default gen_random_uuid(),
+  participant_id uuid references participants(id) not null,
+  entry_number int not null check (entry_number between 1 and 3),
+  anomaly_card_id uuid references anomaly_cards(id) not null,
+  created_at timestamptz default now(),
+  unique (participant_id, entry_number)
+);
+```
+
+- `submissions`: HAPUS unique constraint di `participant_id`, tambah kolom `entry_id uuid references entries(id) unique not null`.
+- **Migrasi data existing**: untuk tiap peserta lama, buat satu baris `entries` (entry_number = 1, anomaly_card_id diambil dari `participants.anomaly_card_id`) dan hubungkan submission lamanya ke entry itu. Kolom `participants.anomaly_card_id` setelah itu boleh dibiarkan (deprecated) — jangan di-drop biar aman.
+- Peserta lama tanpa email: kolom email nullable dulu; saat mereka buka `/status` atau mau bikin entry baru, minta isi email sekali (prompt "Lengkapi email lo dulu").
+- RLS ikut pola existing. Enforcement limit 3 dan pembuatan entry dilakukan lewat API route server-side (service role) yang menghitung jumlah entries peserta itu dulu.
+
+## 3. Perubahan Alur & Halaman
+
+**/join:**
+- Form tambah field **email** (validasi format, lowercase-kan sebelum simpan, font-size ≥16px).
+- Kalau email sudah terdaftar → jangan error mati: tampilkan "Email ini udah terdaftar — lanjutin sebagai [nama]?" → tombol lanjut me-restore sesi (set participant_id di localStorage) dan arahkan ke `/status`. Ini sekaligus jadi cara pindah device.
+- Setelah daftar akun baru → langsung gacha Entry #1 seperti biasa.
+
+**Mulai entry baru:**
+- Di `/status` dan setelah submit sukses, tampilkan tombol **"Ikut Lagi 🎲 (sisa X percobaan)"** selama entry < 3 dan deadline belum lewat.
+- Klik → API bikin entry baru (nomor berikutnya) → langsung ke animasi gacha untuk kartu baru → lanjut flow prompt → submit seperti biasa.
+- Kalau sudah 3 entry → tombol hilang, ganti teks "Jatah percobaan lo udah habis (3/3) — pantau votenya! 🔥".
+
+**/prompt & /submit:**
+- Selalu bekerja dalam konteks "entry aktif" (entry terbaru yang belum punya submission). Prompt terisi anomali milik entry itu.
+- `/submit`: replace hanya berlaku untuk entry yang sama (ganti karya entry itu, vote reset). Entry lain tidak terpengaruh.
+
+**/status:**
+- Tampilkan daftar semua entry si peserta sebagai kartu terpisah: Entry #1 / #2 / #3, masing-masing dengan emoji+nama anomalinya, thumbnail karya, status (belum upload / pending / verified / rejected), dan vote count.
+- Bagian hadiah tetap SATU untuk seluruh akun: begitu minimal satu entry `verified` → tombol "Klaim Akses AINA" muncul (logika klaim tidak berubah).
+
+**/gallery, /leaderboard, /live:**
+- Tidak ada perubahan struktur — cukup pastikan semuanya membaca data per-karya (per submission), bukan per-peserta, dan nama yang muncul lebih dari sekali itu normal.
+
+**/admin:**
+- Tab Verifikasi: tampilkan "Entry #N" + email peserta di tiap item antrian.
+- Tab Leads: tambah kolom email + jumlah entry per peserta di tabel dan di Export CSV.
+
+## 4. Anti-Curang (ringan saja, ini event komunitas)
+
+- Limit 3 dihitung server-side dari tabel `entries` — jangan percaya localStorage.
+- Satu email = satu akun (unique index sudah menangani).
+- Tidak perlu verifikasi email/OTP — jaga tetap frictionless. Cukup validasi format.
+
+## Catatan Eksekusi
+
+- Pertahankan desain existing; teks UI tetap bahasa Indonesia santai.
+- `npm run build` harus lolos.
+- Di akhir: ringkasan file berubah + reminder jalankan `migration_v3.sql` + konfirmasi bahwa data peserta lama tetap utuh (entry #1 mereka tidak hilang).

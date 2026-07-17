@@ -1,0 +1,766 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: AIGYPT Poster Challenge API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: participants
+    description: Participant management
+  - name: submissions
+    description: Submission management
+  - name: prizes
+    description: Prize code management
+  - name: leaderboard
+    description: Leaderboard and recent joins
+  - name: votes
+    description: Voting
+  - name: settings
+    description: App settings
+  - name: admin
+    description: Admin panel operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /participants:
+    post:
+      operationId: createParticipant
+      tags: [participants]
+      summary: Register a new participant and draw anomaly card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParticipantInput"
+      responses:
+        "201":
+          description: Participant created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Participant"
+        "400":
+          description: Validation error
+
+  /participants/{id}:
+    get:
+      operationId: getParticipant
+      tags: [participants]
+      summary: Get participant by ID (for status page)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Participant found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParticipantWithStatus"
+        "404":
+          description: Not found
+
+  /submissions:
+    post:
+      operationId: createSubmission
+      tags: [submissions]
+      summary: Create or replace a submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmissionInput"
+      responses:
+        "201":
+          description: Submission created/replaced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Submission"
+        "400":
+          description: Validation error or deadline passed
+
+  /submissions/by-participant/{participantId}:
+    get:
+      operationId: getSubmissionByParticipant
+      tags: [submissions]
+      summary: Get submission for a participant
+      parameters:
+        - name: participantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Submission found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Submission"
+        "404":
+          description: No submission yet
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get all public settings
+      responses:
+        "200":
+          description: Settings map
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get verified submissions sorted by votes
+      responses:
+        "200":
+          description: Leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  /recent-joins:
+    get:
+      operationId: getRecentJoins
+      tags: [leaderboard]
+      summary: Get recent submissions (any status) for the FOMO feed
+      responses:
+        "200":
+          description: Recent entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecentJoin"
+
+  /gallery:
+    get:
+      operationId: getGallery
+      tags: [submissions]
+      summary: Get verified submissions for gallery
+      responses:
+        "200":
+          description: Gallery entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GalleryEntry"
+
+  /votes:
+    post:
+      operationId: castVote
+      tags: [votes]
+      summary: Cast a vote for a submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteInput"
+      responses:
+        "201":
+          description: Vote cast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteResult"
+        "400":
+          description: Voting closed or limit reached
+
+  /votes/{submissionId}:
+    delete:
+      operationId: removeVote
+      tags: [votes]
+      summary: Remove a vote from a submission
+      parameters:
+        - name: submissionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Vote removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteResult"
+
+  /prize/claim:
+    post:
+      operationId: claimPrize
+      tags: [prizes]
+      summary: Claim prize code (server-side, service role)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimPrizeInput"
+      responses:
+        "200":
+          description: Prize code(s) returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimedPrize"
+        "400":
+          description: Not eligible or already claimed
+
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login with password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAuthStatus"
+        "401":
+          description: Wrong password
+
+  /admin/logout:
+    post:
+      operationId: adminLogout
+      tags: [admin]
+      summary: Admin logout
+      responses:
+        "200":
+          description: Logged out
+
+  /admin/auth:
+    get:
+      operationId: checkAdminAuth
+      tags: [admin]
+      summary: Check admin authentication status
+      responses:
+        "200":
+          description: Auth status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAuthStatus"
+
+  /admin/submissions:
+    get:
+      operationId: adminListSubmissions
+      tags: [admin]
+      summary: List all submissions with full details (admin)
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All submissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminSubmission"
+        "401":
+          description: Unauthorized
+
+  /admin/submissions/{id}:
+    put:
+      operationId: adminUpdateSubmission
+      tags: [admin]
+      summary: Update submission status or winner category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSubmissionUpdate"
+      responses:
+        "200":
+          description: Updated submission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSubmission"
+        "401":
+          description: Unauthorized
+
+  /admin/participants:
+    get:
+      operationId: adminListParticipants
+      tags: [admin]
+      summary: List all participants with full data (admin, for Leads tab + CSV export)
+      responses:
+        "200":
+          description: All participants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminParticipant"
+        "401":
+          description: Unauthorized
+
+  /admin/prizes:
+    get:
+      operationId: adminListPrizes
+      tags: [admin]
+      summary: List all prize codes with claim info
+      responses:
+        "200":
+          description: Prize codes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminPrizeList"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: adminAddPrizes
+      tags: [admin]
+      summary: Bulk add prize codes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminPrizeInput"
+      responses:
+        "201":
+          description: Codes added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminPrizeAddResult"
+        "401":
+          description: Unauthorized
+
+  /admin/settings:
+    put:
+      operationId: adminUpdateSettings
+      tags: [admin]
+      summary: Update app settings (deadline, voting_open)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSettingsInput"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+        "401":
+          description: Unauthorized
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    ParticipantInput:
+      type: object
+      required: [name, ig_handle]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        ig_handle:
+          type: string
+          minLength: 1
+        wants_class_info:
+          type: boolean
+
+    AnomalyCard:
+      type: object
+      required: [id, emoji, text]
+      properties:
+        id:
+          type: string
+        emoji:
+          type: string
+        text:
+          type: string
+
+    Participant:
+      type: object
+      required: [id, name, ig_handle, created_at]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        ig_handle:
+          type: string
+        wants_class_info:
+          type: boolean
+        anomaly_card:
+          $ref: "#/components/schemas/AnomalyCard"
+        created_at:
+          type: string
+
+    ParticipantWithStatus:
+      type: object
+      required: [id, name, ig_handle, created_at]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        ig_handle:
+          type: string
+        wants_class_info:
+          type: boolean
+        anomaly_card:
+          $ref: "#/components/schemas/AnomalyCard"
+        created_at:
+          type: string
+        submission:
+          $ref: "#/components/schemas/Submission"
+        prize_basic:
+          $ref: "#/components/schemas/ClaimedPrize"
+        prize_premium:
+          $ref: "#/components/schemas/ClaimedPrize"
+
+    SubmissionInput:
+      type: object
+      required: [participant_id, image_url, ig_post_url]
+      properties:
+        participant_id:
+          type: string
+        image_url:
+          type: string
+        ig_post_url:
+          type: string
+
+    Submission:
+      type: object
+      required: [id, participant_id, image_url, ig_post_url, status, created_at]
+      properties:
+        id:
+          type: string
+        participant_id:
+          type: string
+        image_url:
+          type: string
+        ig_post_url:
+          type: string
+        status:
+          type: string
+        winner_category:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    Settings:
+      type: object
+      required: [deadline_submit, voting_open]
+      properties:
+        deadline_submit:
+          type: string
+        voting_open:
+          type: string
+
+    LeaderboardEntry:
+      type: object
+      required: [submission_id, name, ig_handle, emoji, anomaly_text, image_url, status, vote_count, created_at]
+      properties:
+        submission_id:
+          type: string
+        name:
+          type: string
+        ig_handle:
+          type: string
+        emoji:
+          type: string
+        anomaly_text:
+          type: string
+        image_url:
+          type: string
+        status:
+          type: string
+        winner_category:
+          type: ["string", "null"]
+        vote_count:
+          type: integer
+        created_at:
+          type: string
+
+    RecentJoin:
+      type: object
+      required: [submission_id, name, ig_handle, emoji, anomaly_text, image_url, status, created_at]
+      properties:
+        submission_id:
+          type: string
+        name:
+          type: string
+        ig_handle:
+          type: string
+        emoji:
+          type: string
+        anomaly_text:
+          type: string
+        image_url:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+
+    GalleryEntry:
+      type: object
+      required: [submission_id, name, ig_handle, emoji, anomaly_text, image_url, vote_count, created_at]
+      properties:
+        submission_id:
+          type: string
+        name:
+          type: string
+        ig_handle:
+          type: string
+        emoji:
+          type: string
+        anomaly_text:
+          type: string
+        image_url:
+          type: string
+        winner_category:
+          type: ["string", "null"]
+        vote_count:
+          type: integer
+        created_at:
+          type: string
+
+    VoteInput:
+      type: object
+      required: [submission_id, voter_fingerprint]
+      properties:
+        submission_id:
+          type: string
+        voter_fingerprint:
+          type: string
+
+    VoteResult:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        vote_count:
+          type: integer
+
+    ClaimPrizeInput:
+      type: object
+      required: [participant_id]
+      properties:
+        participant_id:
+          type: string
+
+    ClaimedPrize:
+      type: object
+      required: [code, tier]
+      properties:
+        code:
+          type: string
+        tier:
+          type: string
+
+    AdminLoginInput:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+
+    AdminAuthStatus:
+      type: object
+      required: [authenticated]
+      properties:
+        authenticated:
+          type: boolean
+
+    AdminSubmission:
+      type: object
+      required: [id, participant_id, image_url, ig_post_url, status, created_at, participant_name, participant_ig]
+      properties:
+        id:
+          type: string
+        participant_id:
+          type: string
+        participant_name:
+          type: string
+        participant_ig:
+          type: string
+        anomaly_emoji:
+          type: string
+        anomaly_text:
+          type: string
+        image_url:
+          type: string
+        ig_post_url:
+          type: string
+        status:
+          type: string
+        winner_category:
+          type: ["string", "null"]
+        vote_count:
+          type: integer
+        created_at:
+          type: string
+
+    AdminSubmissionUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        winner_category:
+          type: ["string", "null"]
+
+    AdminParticipant:
+      type: object
+      required: [id, name, ig_handle, wants_class_info, created_at]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        ig_handle:
+          type: string
+        wants_class_info:
+          type: boolean
+        anomaly_emoji:
+          type: string
+        anomaly_text:
+          type: string
+        submission_status:
+          type: ["string", "null"]
+        prize_claimed:
+          type: boolean
+        prize_tier:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    AdminPrizeInput:
+      type: object
+      required: [codes, tier]
+      properties:
+        codes:
+          type: array
+          items:
+            type: string
+        tier:
+          type: string
+
+    AdminPrizeAddResult:
+      type: object
+      required: [added]
+      properties:
+        added:
+          type: integer
+
+    PrizeCode:
+      type: object
+      required: [id, code, tier, claimed_by, claimed_at]
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        tier:
+          type: string
+        claimed_by:
+          type: ["string", "null"]
+        claimer_name:
+          type: ["string", "null"]
+        claimed_at:
+          type: ["string", "null"]
+
+    PrizeTierStat:
+      type: object
+      required: [tier, total, remaining]
+      properties:
+        tier:
+          type: string
+        total:
+          type: integer
+        remaining:
+          type: integer
+
+    AdminPrizeList:
+      type: object
+      required: [codes, stats]
+      properties:
+        codes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrizeCode"
+        stats:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrizeTierStat"
+
+    AdminSettingsInput:
+      type: object
+      properties:
+        deadline_submit:
+          type: string
+        voting_open:
+          type: string

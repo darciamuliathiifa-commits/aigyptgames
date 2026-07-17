@@ -1,0 +1,69 @@
+# UPDATE REQUEST: Deploy Semua di Vercel (Frontend + Backend Satu Project)
+
+Tujuan: hilangkan kebutuhan server terpisah. Frontend Vite tetap seperti sekarang; backend Express dibungkus jadi Vercel Serverless Function di project yang sama. JANGAN rewrite logika backend — Express, routes, auth cookie, semuanya tetap. Ini pembungkusan, bukan penulisan ulang.
+
+Fakta repo yang relevan (sudah diverifikasi, jangan diubah asumsinya):
+- Frontend: Vite SPA di `artifacts/aigypt`, manggil API pakai path relatif `/api/...`.
+- Backend: Express 5 di `artifacts/api-server` — `src/app.ts` meng-export `app` (tanpa listen), `src/index.ts` yang manggil `app.listen`. Semua route di-mount di `/api`.
+- Tidak ada WebSocket server ke client — dependency `ws` hanya transport polyfill supabase-js di Node. Aman untuk serverless.
+- DB: Drizzle + `pg Pool` via `DATABASE_URL`.
+
+## Perubahan yang Diminta
+
+### 1. Entry serverless
+
+Buat `artifacts/aigypt/api/[[...path]].ts`:
+
+- Import `app` dari source api-server (`@workspace/api-server` — kalau package itu belum meng-export `./src/app`, tambahkan export path-nya di package.json api-server; JANGAN duplikasi kode).
+- Export default handler yang meneruskan (req, res) ke `app` — Express app adalah request handler yang valid untuk `@vercel/node`, jadi cukup `export default app` bila kompatibel; kalau ada friction dengan Express 5, bungkus tipis: `export default (req, res) => app(req, res)`.
+- Pastikan file `src/index.ts` (yang `app.listen`) TIDAK ikut terimport di jalur ini — listen tidak boleh jalan di serverless.
+- Set runtime Node (bukan edge) — biarkan default `@vercel/node`.
+
+### 2. Penyesuaian koneksi database untuk serverless
+
+Di `lib/db/src/index.ts`: `new Pool({ connectionString: process.env.DATABASE_URL })` → tambahkan `max: 1` (satu koneksi per instance function — connection pooling sesungguhnya ditangani Supabase transaction pooler di sisi server). Jangan ubah apapun lagi di layer db.
+
+### 3. `vercel.json` di `artifacts/aigypt`
+
+Ganti/buat dengan isi:
+
+```json
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/[[...path]]" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
+```
+
+(Rewrite pertama memastikan semua `/api/*` masuk ke function catch-all; kedua adalah SPA fallback yang mengecualikan `/api`.)
+
+### 4. Kompatibilitas build monorepo di Vercel
+
+- Root Directory project Vercel = `artifacts/aigypt`; install berjalan dari root workspace (pnpm). Pastikan import workspace (`@workspace/api-server`, `@workspace/db`, `@workspace/api-zod`) bisa di-trace bundler Vercel: cek `tsconfig` paths dan exports tiap package, rapikan bila perlu.
+- JANGAN menjadikan api-server dibundel duluan lewat esbuild-nya sendiri — biarkan Vercel men-trace dari source TS.
+- Verifikasi `pnpm run typecheck` dan build frontend tetap lolos.
+
+### 5. JANGAN diubah
+
+- Logika routes, validasi, auth cookie admin (path cookie tetap bekerja karena sekarang benar-benar same-origin).
+- Skema database, migration files.
+- Seluruh frontend.
+
+## Env Vars (samakan persis — akan diisi manual di satu project Vercel)
+
+| Nama | Untuk |
+|---|---|
+| `VITE_SUPABASE_URL` | frontend |
+| `VITE_SUPABASE_ANON_KEY` | frontend |
+| `NEXT_PUBLIC_SUPABASE_URL` | backend (kode existing membacanya dengan nama ini — biarkan, jangan rename) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | backend (sama seperti di atas) |
+| `SUPABASE_SERVICE_ROLE_KEY` | backend |
+| `ADMIN_PASSWORD` | backend |
+| `DATABASE_URL` | backend — WAJIB URI Supabase transaction pooler (port 6543), bukan koneksi direct |
+
+## Definisi Selesai
+
+1. `vercel build` (atau minimal `pnpm run build` + struktur api/ benar) lolos tanpa error.
+2. Daftar file yang berubah + instruksi singkat: set Root Directory `artifacts/aigypt`, isi 7 env di atas, deploy.
+3. Konfirmasi eksplisit bahwa tidak ada logika backend yang berubah selain pembungkusan entry + `max: 1` di Pool.

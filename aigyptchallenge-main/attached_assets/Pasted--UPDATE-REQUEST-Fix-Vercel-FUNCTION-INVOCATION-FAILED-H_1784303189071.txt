@@ -1,0 +1,355 @@
+# 🔧 UPDATE REQUEST — Fix Vercel FUNCTION_INVOCATION_FAILED (HTTP 500 di semua /api/*)
+
+## Konteks
+
+Deployment Vercel (aigyptgame.vercel.app) selalu balikin `HTTP 500 FUNCTION_INVOCATION_FAILED` saat frontend hit `POST /api/participants`. Root cause sudah didiagnosis dan direproduksi secara lokal — function crash saat **cold start**, sebelum Express sempat handle request. Ada 2 bug pasti + 1 bug laten:
+
+1. **Env name mismatch**: `artifacts/api-server/src/lib/supabase.ts` melakukan `throw` di module load kalau `NEXT_PUBLIC_SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` tidak ada — padahal frontend pakai nama `VITE_*`. Throw di top-level = seluruh serverless function mati = FUNCTION_INVOCATION_FAILED di SEMUA route.
+2. **ESM/CJS interop**: `artifacts/aigypt/api/[[...path]].ts` (package `"type": "module"`) default-import `_bundled/app.cjs`. Hasil interop Node = object `{ default: app }`, BUKAN function Express. Vercel invoke object → crash.
+3. **Laten**: pino-pretty transport spawn worker thread via file path yang tidak survive di serverless kalau `NODE_ENV` bukan `production`.
+
+## Aturan penting (WAJIB dipatuhi)
+
+- JANGAN mengubah file lain di luar 5 file yang disebut di bawah.
+- JANGAN mengubah logic route lain (participants, entries, submissions, dst).
+- JANGAN deploy dari Replit — deployment tetap via git push → Vercel.
+- Ganti isi file PERSIS seperti yang diberikan di bawah (jangan "improve" sendiri).
+- Setelah edit source, WAJIB rebuild bundle (Tugas 6) karena Vercel pakai `app.cjs` yang di-commit ke repo.
+
+---
+
+## Tugas 1 — Replace isi `artifacts/api-server/src/lib/supabase.ts`
+
+```ts
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import ws from "ws";
+
+// ---------------------------------------------------------------------------
+// Env resolution — accept multiple common names so a mismatch between what
+// was configured on Vercel and what the code expects never crashes the
+// function at cold start (which surfaces as FUNCTION_INVOCATION_FAILED with
+// zero useful info). Missing envs now produce a clear JSON error instead.
+// ---------------------------------------------------------------------------
+
+function firstEnv(...names: string[]): string | undefined {
+  for (const n of names) {
+    const v = process.env[n];
+    if (v && v.trim() !== "") return v.trim();
+  }
+  return undefined;
+}
+
+export function resolveSupabaseEnv() {
+  const url = firstEnv(
+    "SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "VITE_SUPABASE_URL",
+  );
+  const serviceKey = firstEnv(
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_SERVICE_KEY",
+    "SUPABASE_SECRET_KEY",
+  );
+  const anonKey = firstEnv(
+    "SUPABASE_ANON_KEY",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "VITE_SUPABASE_ANON_KEY",
+    "SUPABASE_PUBLISHABLE_KEY",
+  );
+  return { url, serviceKey, anonKey };
+}
+
+export function missingSupabaseEnvNames(): string[] {
+  const { url, serviceKey, anonKey } = resolveSupabaseEnv();
+  const missing: string[] = [];
+  if (!url) missing.push("SUPABASE_URL (atau NEXT_PUBLIC_SUPABASE_URL / VITE_SUPABASE_URL)");
+  if (!serviceKey) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!anonKey) missing.push("SUPABASE_ANON_KEY (atau NEXT_PUBLIC_SUPABASE_ANON_KEY / VITE_SUPABASE_ANON_KEY)");
+  return missing;
+}
+
+const realtimeOpts = { transport: ws } as any;
+
+let _admin: SupabaseClient | null = null;
+let _anon: SupabaseClient | null = null;
+
+function requireEnv() {
+  const env = resolveSupabaseEnv();
+  const missing = missingSupabaseEnvNames();
+  if (missing.length > 0) {
+    const err = new Error(
+      `Missing Supabase env vars: ${missing.join(", ")}. ` +
+        `Set them in Vercel → Project Settings → Environment Variables, lalu REDEPLOY.`,
+    );
+    (err as any).statusCode = 500;
+    (err as any).expose = true;
+    throw err;
+  }
+  return env as { url: string; serviceKey: string; anonKey: string };
+}
+
+function getAdmin(): SupabaseClient {
+  if (!_admin) {
+    const { url, serviceKey } = requireEnv();
+    _admin = createClient(url, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+      realtime: realtimeOpts,
+    });
+  }
+  return _admin;
+}
+
+function getAnon(): SupabaseClient {
+  if (!_anon) {
+    const { url, anonKey } = requireEnv();
+    _anon = createClient(url, anonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+      realtime: realtimeOpts,
+    });
+  }
+  return _anon;
+}
+
+// Lazy proxies — existing route code (`supabaseAdmin.from(...)`) keeps working
+// unchanged; the real client is only created on first property access, and a
+// missing env throws a descriptive error that the Express error handler turns
+// into readable JSON instead of crashing the whole serverless function.
+export const supabaseAdmin: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_t, prop, _r) {
+    const client = getAdmin() as any;
+    const value = client[prop];
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
+
+export const supabaseAnon: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_t, prop, _r) {
+    const client = getAnon() as any;
+    const value = client[prop];
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
+```
+
+---
+
+## Tugas 2 — Replace isi `artifacts/api-server/src/lib/logger.ts`
+
+```ts
+import pino from "pino";
+
+// pino-pretty spawns a worker thread via a file path — that path does not
+// survive serverless bundling/deployment and can crash the function at cold
+// start. Only enable it for explicit local development, never on Vercel.
+const usePretty =
+  process.env.NODE_ENV === "development" && !process.env.VERCEL;
+
+export const logger = pino({
+  level: process.env.LOG_LEVEL ?? "info",
+  redact: [
+    "req.headers.authorization",
+    "req.headers.cookie",
+    "res.headers['set-cookie']",
+  ],
+  ...(usePretty
+    ? {
+        transport: {
+          target: "pino-pretty",
+          options: { colorize: true },
+        },
+      }
+    : {}),
+});
+```
+
+---
+
+## Tugas 3 — Replace isi `artifacts/api-server/src/app.ts`
+
+```ts
+import express, {
+  type Express,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import pinoHttp from "pino-http";
+import router from "./routes";
+import { logger } from "./lib/logger";
+
+const app: Express = express();
+
+app.use(
+  pinoHttp({
+    logger,
+    serializers: {
+      req(req) {
+        return {
+          id: req.id,
+          method: req.method,
+          url: req.url?.split("?")[0],
+        };
+      },
+      res(res) {
+        return {
+          statusCode: res.statusCode,
+        };
+      },
+    },
+  }),
+);
+app.use(cors({ origin: true, credentials: true }));
+app.use(cookieParser());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+app.use("/api", router);
+
+// JSON 404 for unknown /api/* routes (instead of Express HTML page)
+app.use("/api", (_req: Request, res: Response) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+// Global error handler — turns any thrown/rejected error (including missing
+// env vars) into readable JSON instead of crashing the serverless function,
+// which would otherwise surface as an opaque FUNCTION_INVOCATION_FAILED.
+app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+  const status = Number(err?.statusCode ?? err?.status ?? 500);
+  const message =
+    err?.expose || status < 500
+      ? String(err?.message ?? "Request error")
+      : String(err?.message ?? "Internal server error");
+
+  try {
+    (req as any).log?.error({ err }, "Unhandled request error");
+  } catch {
+    // logging must never take down the handler
+  }
+
+  if (!res.headersSent) {
+    res.status(Number.isFinite(status) ? status : 500).json({ error: message });
+  }
+});
+
+export default app;
+```
+
+---
+
+## Tugas 4 — Replace isi `artifacts/api-server/src/routes/health.ts`
+
+```ts
+import { Router, type IRouter } from "express";
+import { HealthCheckResponse } from "@workspace/api-zod";
+import { resolveSupabaseEnv } from "../lib/supabase";
+
+const router: IRouter = Router();
+
+function healthPayload() {
+  const data = HealthCheckResponse.parse({ status: "ok" });
+  const env = resolveSupabaseEnv();
+  // Booleans only — never expose values. Makes "which env var is missing on
+  // Vercel?" a 5-second check: open /api/healthz in the browser.
+  return {
+    ...data,
+    supabase_env: {
+      url: Boolean(env.url),
+      service_role_key: Boolean(env.serviceKey),
+      anon_key: Boolean(env.anonKey),
+    },
+  };
+}
+
+router.get("/healthz", (_req, res) => {
+  res.json(healthPayload());
+});
+
+// Alias — easier to remember when debugging
+router.get("/health", (_req, res) => {
+  res.json(healthPayload());
+});
+
+export default router;
+```
+
+---
+
+## Tugas 5 — Replace isi `artifacts/aigypt/api/[[...path]].ts`
+
+```ts
+// Vercel Serverless Function — catch-all handler for /api/* routes.
+// Imports the pre-bundled Express app (CJS bundle built by `pnpm build:fn`).
+// Runtime: @vercel/node (Node.js, not Edge).
+//
+// The bundle at ./_bundled/app.cjs is produced by artifacts/api-server/build-fn.mjs
+// and committed to the repo so Vercel always has it without needing a monorepo build.
+
+// @ts-ignore — CJS bundle, no type declarations needed
+import mod from "./_bundled/app.cjs";
+
+// esbuild's CJS output wraps the app as `module.exports = { default: app }`.
+// When this ESM file default-imports that CJS module, Node interop hands us
+// the whole exports OBJECT, not the Express function — and Vercel then tries
+// to invoke an object as a handler → FUNCTION_INVOCATION_FAILED.
+// Unwrap `.default` (recursively, to be safe) so the export is always the
+// actual Express request handler function.
+function unwrap(m: any): any {
+  let cur = m;
+  for (let i = 0; i < 3 && cur && typeof cur !== "function" && cur.default; i++) {
+    cur = cur.default;
+  }
+  return cur;
+}
+
+const app = unwrap(mod);
+
+if (typeof app !== "function") {
+  throw new Error(
+    "aigypt api: bundled Express app did not resolve to a function — check api/_bundled/app.cjs",
+  );
+}
+
+export default app;
+```
+
+---
+
+## Tugas 6 — Rebuild bundle serverless (WAJIB, jangan skip)
+
+Vercel memakai `artifacts/aigypt/api/_bundled/app.cjs` yang di-commit ke repo, jadi source fix di atas TIDAK berpengaruh sebelum bundle di-regenerate:
+
+```bash
+pnpm --filter @workspace/api-server run build:fn
+```
+
+Verifikasi: timestamp `artifacts/aigypt/api/_bundled/app.cjs` berubah (file baru ~2.3 MB) dan output esbuild sukses tanpa error.
+
+## Tugas 7 — Verifikasi
+
+1. `pnpm --filter @workspace/api-server run typecheck` harus lulus tanpa error.
+2. Smoke test lokal: jalankan Node script berikut dan pastikan output sesuai:
+
+```bash
+node --input-type=module -e "
+process.env.NODE_ENV='production'; process.env.VERCEL='1';
+const mod = await import(process.cwd() + '/artifacts/aigypt/api/_bundled/app.cjs');
+let app = mod.default ?? mod; while (typeof app !== 'function' && app?.default) app = app.default;
+console.log('handler typeof (harus function):', typeof app);
+const srv = app.listen(3999, async () => {
+  const h = await fetch('http://localhost:3999/api/healthz');
+  console.log('healthz:', h.status, await h.text());
+  const p = await fetch('http://localhost:3999/api/participants', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({name:'t', ig_handle:'t', email:'t@t.com'})});
+  console.log('participants (tanpa env, harus 500 JSON \\'Missing Supabase env vars\\', BUKAN crash):', p.status, await p.text());
+  srv.close(); process.exit(0);
+});
+"
+```
+
+Kriteria sukses: `handler typeof: function`, healthz 200 dengan field `supabase_env`, dan POST participants balikin JSON error yang readable (bukan process crash).
+
+## Catatan akhir
+
+- Setelah semua tugas selesai, commit semua perubahan (termasuk `_bundled/*.cjs` hasil rebuild). JANGAN deploy dari Replit.
+- Deployment dilakukan manual: push ke GitHub → Vercel auto-deploy.

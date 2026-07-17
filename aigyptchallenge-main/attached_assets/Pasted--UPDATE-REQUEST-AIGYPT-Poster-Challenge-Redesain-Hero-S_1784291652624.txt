@@ -1,0 +1,63 @@
+# UPDATE REQUEST: AIGYPT Poster Challenge — Redesain Hero Section
+
+Scope: HANYA hero section di landing page. Jangan sentuh halaman lain, database, atau fitur existing. Elemen fungsional yang sudah ada (countdown realtime, counter karya, floating cards desktop, marquee mobile, badge hadiah) TETAP dipakai — mereka cuma pindah posisi/ganti gaya sesuai desain baru ini.
+
+## Konsep
+
+Hero lama: statis, judul gede + countdown, tagline campur bahasa Inggris. Hero baru: terasa seperti **arena yang lagi rame** — ada gerakan, ada teks yang hidup, ada bukti orang lain lagi ikutan, dan satu CTA yang gak mungkin dilewatin.
+
+## Susunan Baru (atas ke bawah)
+
+**1. Badge status (kecil, di atas):**
+> 🔴 LIVE DARI TENANT AIGYPT
+dengan titik merah pulsing. Di sebelahnya badge hadiah existing, copy-nya dipersingkat: "🎁 Misi selesai = akses AINA" (logo AINA tetap).
+
+**2. Judul utama (ganti total):**
+> UBAH TENANT INI
+> JADI POSTER
+> PALING GILA 🔥
+- 3 baris stagger entrance seperti sekarang. Kata "PALING GILA" pakai gradient ungu → magenta dengan shimmer bergerak lambat (background-position loop).
+- Ukuran tetap pakai clamp() biar aman di 360px.
+
+**3. Baris anomali berputar (elemen baru — ini bintangnya):**
+Satu baris teks di bawah judul yang cycling tiap 2.5 detik dari daftar kartu anomali (ambil random 8-10 dari tabel `anomaly_cards`), dengan animasi teks lama slide-up keluar, teks baru slide-up masuk:
+> Kartu lo bisa jadi: **"Sphinx ngoding di tenant"** 🦁
+> Kartu lo bisa jadi: **"Unta pake VR headset"** 🐪
+> Kartu lo bisa jadi: **"Robot AIGYPT jualan koshari"** 🤖
+Prefix "Kartu lo bisa jadi:" statis, hanya bagian anomali (+ emoji) yang berganti. Ini teaser gacha — bikin orang penasaran bakal dapet kartu apa.
+
+**4. Tagline (ganti total, full Indonesia):**
+> Foto tenant AIGYPT pake HP lo, gacha kartu anomali, biarin AI yang ngegas.
+> 3 kesempatan. Vote terbanyak menang. Semua yang kelar dapet akses AINA.
+
+**5. CTA ganda:**
+- Primer (besar, glow, satu-satunya tombol solid ungu di hero): **"Tarik Kartu Lo 🎲"** → /join. Emoji dadu wiggle berkala (sudah ada polanya di paket animasi).
+- Sekunder (ghost/outline, lebih kecil): "Intip Karya Orang 👀" → /gallery.
+
+**6. Countdown existing** — pindah ke bawah CTA, gaya visual tetap, label ganti jadi:
+> ⏳ SISA WAKTU BUAT SUBMIT
+(perilaku merah-pulse saat < 1 jam tetap berlaku).
+
+**7. Live activity strip (upgrade dari counter statis):**
+Ganti "X karya terdaftar" jadi strip aktivitas realtime yang bergantian menampilkan:
+- "🔥 X karya udah masuk arena"
+- "🎲 [nama depan] baru aja narik kartu [emoji anomali]" (dari entries terbaru, realtime; nama depan saja)
+- "🖼️ [nama depan] baru submit karya!"
+Bergantian tiap 4 detik, animasi slide. Kalau belum ada aktivitas, tampilkan varian pertama saja. JANGAN tampilkan email atau nama lengkap.
+
+## Background & Rasa "Hidup"
+
+- Pertahankan dark purple + grid halus existing. Tambah 2-3 blob gradient ungu/magenta besar yang bergerak SANGAT lambat (60-90 detik per siklus, blur besar, opacity rendah) di belakang semuanya.
+- Floating cards (desktop): tambah parallax mengikuti mouse — kartu bergeser 6-12px berlawanan arah gerakan kursor, layer beda kecepatan biar ada kedalaman. Mobile: marquee existing tetap, tanpa gyro (jangan minta permission sensor).
+- Semua tetap patuh aturan paket animasi: transform/opacity only, reduced-motion mematikan semua gerakan dekoratif, 60fps di mobile.
+
+## Mobile (< 1024px)
+
+Urutan sama, penyesuaian: badge status + badge AINA boleh stack 2 baris; judul 3 baris clamp; baris anomali berputar font lebih kecil tapi TETAP ADA (ini hook utama); CTA primer full-width, sekunder di bawahnya; countdown compact satu baris; live activity strip di paling bawah; marquee kartu contoh tetap di posisinya sekarang.
+
+## Catatan Eksekusi
+
+- Semua teks baru persis seperti tertulis di atas — jangan diterjemahkan ke Inggris atau diformalkan.
+- Hero harus tetap cepat: blob dan shimmer murni CSS, baris anomali cuma fetch sekali saat load.
+- `npm run build` lolos, cek 360px tanpa overflow.
+- Di akhir: screenshot/deskripsi hasil desktop + mobile.

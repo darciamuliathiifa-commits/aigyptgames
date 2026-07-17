@@ -1,0 +1,220 @@
+# BLUEPRINT v2: AIGYPT Poster Challenge Web App
+
+> Prompt untuk Replit Agent. Baca keseluruhan dokumen dulu sebelum eksekusi. Ini spec final — jangan tambah fitur di luar ini.
+
+## 1. Konteks & Tujuan
+
+Web app untuk event "Poster Challenge" di tenant/booth AIGYPT. Peserta (mahasiswa Indonesia di Kairo) me-remake foto tenant AIGYPT jadi poster kreatif pakai AI image generator (Gemini/ChatGPT). Misi lengkap peserta: bikin poster → **upload ke Instagram + tag @ai.gypt** → daftarkan karya di website → setelah diverifikasi admin, karya tampil di layar TV booth & galeri, dan peserta bisa **klaim hadiah: akses AINA** (ainalabs.pro, asisten AI Masisir).
+
+Hadiah dua tingkat:
+- **Semua peserta terverifikasi** → kode akses AINA tier basic.
+- **3 juara** (Paling Kreatif / Paling Absurd / Paling Niat) → kode akses AINA tier premium.
+
+App HARUS mobile-first, kecuali `/live` yang untuk layar TV fullscreen.
+
+## 2. Tech Stack
+
+- **Framework:** Next.js 14+ (App Router) + TypeScript + Tailwind CSS — deploy target: Vercel
+- **Database & Storage:** Supabase (Postgres + Storage bucket + Realtime)
+- **Auth:** TANPA login untuk peserta (identitas via `participant_id` di localStorage). Admin pakai password di env var (`ADMIN_PASSWORD`), diverifikasi lewat API route + cookie httpOnly.
+- **Env vars:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server-only), `ADMIN_PASSWORD`
+
+## 3. Skema Database (Supabase / Postgres)
+
+Buat file `supabase/migration.sql` yang gue jalankan manual di Supabase SQL Editor:
+
+```sql
+create table anomaly_cards (
+  id uuid primary key default gen_random_uuid(),
+  text text not null,
+  emoji text not null,
+  active boolean default true
+);
+
+create table participants (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  ig_handle text not null,
+  wants_class_info boolean default false,
+  anomaly_card_id uuid references anomaly_cards(id),
+  created_at timestamptz default now()
+);
+
+create table submissions (
+  id uuid primary key default gen_random_uuid(),
+  participant_id uuid references participants(id) not null unique,
+  image_url text not null,
+  ig_post_url text not null,
+  status text default 'pending' check (status in ('pending','verified','rejected')),
+  winner_category text, -- null | 'kreatif' | 'absurd' | 'niat'
+  created_at timestamptz default now()
+);
+
+create table votes (
+  id uuid primary key default gen_random_uuid(),
+  submission_id uuid references submissions(id) not null,
+  voter_fingerprint text not null,
+  created_at timestamptz default now(),
+  unique (submission_id, voter_fingerprint)
+);
+
+create table prize_codes (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  tier text not null check (tier in ('basic','premium')),
+  claimed_by uuid references participants(id),
+  claimed_at timestamptz
+);
+-- gue akan insert kode voucher AINA sendiri sebelum event
+
+create table settings (
+  key text primary key,
+  value text not null
+);
+-- seed: ('deadline_submit', ISO timestamp), ('voting_open', 'true')
+```
+
+View untuk publik: `submission_vote_counts` (submission_id, vote_count) dan `leaderboard_public` (nama peserta, ig_handle, emoji + teks anomali, image_url, status, vote_count, created_at — hanya baris submissions berstatus `pending` atau `verified`, JANGAN expose `wants_class_info`).
+
+**Storage:** bucket `posters` (public read), upload dari client pakai anon key.
+
+**RLS:** aktifkan di semua tabel.
+- `anomaly_cards`: select anon.
+- `participants`: insert anon; select baris sendiri via `participant_id` (dipakai `/status`); data lengkap hanya service role.
+- `submissions`: insert anon (satu per peserta, enforce unique); select anon hanya lewat view `leaderboard_public`; update/delete hanya service role.
+- `votes`: insert anon (hanya untuk submission `verified`); select agregat via view.
+- `prize_codes`: TIDAK BISA diakses anon sama sekali. Klaim hanya lewat API route server-side (service role) yang cek status peserta dulu.
+- `settings`: select anon; update service role.
+
+## 4. Halaman & Rute
+
+### `/` — Landing (mobile)
+- Hero: "AIGYPT Poster Challenge", countdown deadline (dari `settings.deadline_submit`).
+- **Banner hadiah** menonjol: "Selesaikan misinya → dapet akses AINA, asisten AI Masisir 🎁" dengan link kecil ke ainalabs.pro.
+- Langkah misi (5 step visual): Daftar → Tarik Kartu Anomali → Bikin Poster pakai AI → Upload ke IG + tag @ai.gypt → Daftarkan di sini & klaim hadiah.
+- CTA besar "Ikutan Sekarang" → `/join`. Link sekunder: "Lihat Leaderboard" → `/leaderboard`, "Galeri & Vote" → `/gallery`.
+
+### `/join` — Daftar + Gacha Anomali
+- Form: nama, IG handle (auto-prepend "@"), checkbox "Mau info kelas AIGYPT?".
+- Catatan di bawah field IG: "Akun IG harus public (atau minimal sampai pengumuman juara) supaya tag-nya bisa kami verifikasi."
+- Setelah submit → **animasi gacha**: deck dikocok, user tap menarik satu kartu, flip 3D reveal anomali (emoji besar + teks), confetti ungu. Random dari `anomaly_cards` where `active = true`, tersimpan permanen ke peserta.
+- `participant_id` disimpan di localStorage; kalau sudah ada, tampilkan kartu yang sama (tidak bisa gacha ulang).
+- CTA → `/prompt`.
+
+### `/prompt` — Prompt Template + Misi
+- Prompt yang SUDAH terisi anomali si peserta, box monospace, tombol **Copy** besar:
+
+```
+Buat ulang foto booth/tenant ini menjadi poster sinematik yang epik dan kreatif.
+Pertahankan logo dan tulisan "AIGYPT" tetap jelas terbaca.
+Gaya: cinematic, dramatic lighting, nuansa ungu-gelap futuristik.
+Tambahkan elemen anomali berikut ke dalam scene secara natural namun mencolok: [ANOMALI].
+Kualitas: ultra detail, komposisi poster profesional, aspect ratio 4:5.
+```
+
+- Tombol download foto tenant asli (`/public/tenant.jpg`, gue ganti sendiri filenya).
+- Checklist misi bernomor: (1) copy prompt, (2) buka Gemini/ChatGPT, upload foto tenant sebagai referensi, generate, (3) **post hasilnya ke IG (feed atau story) dan tag @ai.gypt**, (4) balik ke sini, daftarkan karya.
+- CTA → `/submit`.
+
+### `/submit` — Daftarkan Karya
+- Dua input wajib: (a) upload file poster (jpg/png/webp max 8MB, preview, auto-kompres di client kalau > 2MB — sinyal lokasi event bisa lemot), (b) **link post IG** (validasi format URL instagram.com).
+- Cek deadline dari settings; tolak ramah kalau lewat.
+- Satu peserta = satu submission (boleh replace: submission lama + votes-nya di-reset).
+- Sukses → "Karya lo terdaftar! Admin lagi ngecek tag @ai.gypt lo. Pantau statusnya di halaman Status 👇" → CTA ke `/status`.
+
+### `/status` — Status Misi + Klaim Hadiah AINA
+- Baca `participant_id` dari localStorage. Tampilkan progress misi sebagai stepper: Daftar ✅ → Gacha ✅ → Upload karya (✅/belum) → Verifikasi tag IG (⏳/✅/❌) → Hadiah.
+- Kalau status `verified` → tombol besar **"Klaim Akses AINA 🎁"**. Klik → API route server-side ambil satu `prize_codes` tier `basic` yang belum diklaim, assign ke peserta, tampilkan kodenya + tombol copy + link ke ainalabs.pro + instruksi singkat cara redeem. Kode yang sudah diklaim tampil permanen di halaman ini (idempotent — klik ulang tidak ambil kode baru).
+- Kalau peserta ditandai juara → tampilkan juga kode tier `premium` + badge kategorinya.
+- Kalau `rejected` → pesan alasan umum ("tag belum ketemu / akun private") + tombol submit ulang.
+- Realtime: status berubah tanpa refresh.
+
+### `/leaderboard` — Leaderboard Peserta (mobile)
+- **Bagian 1 — Papan Skor:** semua karya `verified` diurut jumlah vote (desc), rank 1-2-3 dapat highlight visual (🥇🥈🥉). Tiap baris: thumbnail poster, nama, @ig_handle (link ke IG-nya), emoji anomali, vote count. Realtime — naik-turun posisi keliatan langsung.
+- **Bagian 2 — Baru Bergabung:** feed realtime siapa saja yang barusan mendaftarkan karya (termasuk yang masih `pending`, dengan badge "menunggu verifikasi") — ini yang bikin orang ngerasa "rame nih" dan FOMO.
+- Counter di atas: "🔥 X karya sudah masuk".
+- Setelah voting ditutup dan juara ditandai → bagian atas berubah jadi podium 3 juara per kategori.
+
+### `/gallery` — Galeri + Voting (mobile)
+- Grid karya `verified`: gambar, nama, @ig_handle, emoji anomali, vote count.
+- Voting: tiap device 3 vote (fingerprint random di localStorage, enforce unique di DB), bisa un-vote. Aktif hanya kalau `settings.voting_open = 'true'`.
+- Voting tutup → tampilkan pemenang dengan badge kategori.
+
+### `/live` — Layar TV Booth (fullscreen, desktop/TV)
+- Grid semua karya `verified`, realtime, karya baru masuk dengan animasi pop.
+- Tiap 12 detik satu karya spotlight fullscreen 5 detik (poster + nama + @handle + anomali + votes).
+- **Strip leaderboard** di sisi/bawah layar: top 5 by votes, update realtime.
+- QR code besar permanen di pojok → URL `/` (generate pakai lib `qrcode`), teks "Scan buat ikutan & menangin akses AINA!".
+- Countdown deadline di header. Juara ditandai → mode WINNER SHOWCASE looping 3 juara.
+- Dark theme total, no scrollbar, hide cursor.
+
+### `/admin` — Panel Admin (password)
+- Login: password → cek `ADMIN_PASSWORD` di API route → cookie httpOnly.
+- Tab **Verifikasi**: antrian `pending` — preview poster besar + link post IG yang bisa diklik (buka tab baru buat ngecek tag @ai.gypt) → tombol Verifikasi / Tolak. Realtime.
+- Tab **Voting & Juara**: karya verified urut votes, tandai juara per kategori (otomatis meng-assign kode `premium` ke peserta itu), toggle `voting_open`, edit deadline.
+- Tab **Kode Hadiah**: daftar `prize_codes` (kode, tier, siapa yang klaim, kapan), form tambah kode massal (paste banyak kode sekaligus, satu per baris, pilih tier), counter sisa kode per tier — kasih warning merah kalau kode basic tersisa < 10.
+- Tab **Leads**: tabel peserta (nama, IG, wants_class_info, status misi, sudah klaim hadiah atau belum) + **Export CSV**.
+- Semua mutasi lewat API routes server-side (service role key). Service role key JANGAN pernah ke client.
+
+## 5. Flow Ringkas
+
+```
+PESERTA:  scan QR → / → /join (daftar + gacha) → /prompt (copy + foto tenant)
+          → bikin poster di Gemini/ChatGPT → POST KE IG + TAG @ai.gypt
+          → /submit (upload file + link IG) → status pending
+          → [admin cek tag → Verifikasi] → tampil di /live, /gallery, /leaderboard
+          → /status → klaim kode akses AINA (basic)
+
+PENGUNJUNG: lihat layar /live → scan QR → /gallery vote (max 3) + /leaderboard
+
+ADMIN: /admin → verifikasi tag IG satu-satu → tutup voting → tandai 3 juara
+       (juara auto-dapet kode premium) → /live mode winner showcase
+       → export CSV leads buat follow-up kelas AIGYPT
+```
+
+## 6. Seed Data — 25 Kartu Anomali
+
+Insert ke `anomaly_cards` (emoji, teks):
+
+1. 🐪 Unta pakai VR headset nongkrong di depan tenant
+2. 🦁 Sphinx lagi ngoding pakai laptop di dalam tenant
+3. 🔺 Piramida melayang terbalik di atas tenant
+4. 🤖 Robot AIGYPT jualan koshari
+5. 👽 Alien antri daftar kelas AI
+6. 🐫 Karavan unta robot lewat depan tenant
+7. 🧞 Jin keluar dari lampu ajaib bawa laptop
+8. 🛸 UFO nge-charge di colokan tenant
+9. 🦅 Burung Horus jadi drone kamera
+10. 🏜️ Tenant berdiri di tengah badai pasir neon
+11. 🌊 Sungai Nil mengalir dari dalam tenant
+12. 👑 Firaun selfie di photobooth AIGYPT
+13. 🐈 Kucing raksasa Mesir tidur di atap tenant
+14. 🚀 Tenant lepas landas jadi roket
+15. 🕌 Tenant di atas awan di antara menara Kairo
+16. 🧟 Mumi bangkit ikutan kelas Vibe Coding
+17. ⚡ Petir ungu menyambar logo AIGYPT
+18. 🎮 Tenant jadi arena game retro raksasa
+19. 🐙 Gurita mekanik megang 8 laptop sekaligus
+20. 🪞 Tenant di dunia cermin terbalik
+21. 🌌 Portal galaksi terbuka di pintu tenant
+22. 🦖 T-Rex pakai jaket AIGYPT jadi satpam
+23. 🎈 Tenant terbang diangkat ribuan balon ungu
+24. 🧊 Tenant membeku jadi es di tengah gurun
+25. 🌙 Bulan turun jadi lampu tenant
+
+## 7. Desain
+
+- Dark theme: background `#1A1625`-ish, aksen ungu brand `#7C3AED` (sama dengan theme color AINA) → gradien ke `#A78BFA`, teks putih.
+- Rounded-2xl untuk kartu, glow ungu halus untuk elemen interaktif, font display bold untuk judul.
+- Bahasa UI: Indonesia santai ("Ikutan Sekarang", "Tarik Kartunya!", "Klaim Akses AINA").
+- Dua momen yang harus paling niat animasinya: gacha kartu di `/join` dan reveal kode hadiah di `/status`.
+
+## 8. Urutan Eksekusi
+
+1. Setup Next.js + Tailwind + Supabase client.
+2. Tulis `supabase/migration.sql` (schema + RLS + views + seed 25 kartu + settings default) — JANGAN jalankan otomatis, gue eksekusi manual.
+3. Bangun halaman berurutan: `/join` (gacha) → `/prompt` → `/submit` → `/status` (klaim hadiah) → `/leaderboard` → `/gallery` → `/live` → `/admin` → `/`.
+4. Pastikan `npm run build` lolos (siap deploy Vercel).
+5. Checklist akhir buat gue: env vars di Vercel, langkah migration, cara ganti `/public/tenant.jpg`, cara isi kode voucher AINA lewat tab Kode Hadiah.
+
+Kalau ada keputusan teknis ambigu, pilih yang paling sederhana dan tulis catatannya di akhir.

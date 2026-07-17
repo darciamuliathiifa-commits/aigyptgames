@@ -1,0 +1,55 @@
+# UPDATE REQUEST: AIGYPT Poster Challenge — Paket Animasi
+
+Website sudah live. Tugas ini murni polish animasi — JANGAN ubah fitur, alur, struktur data, atau layout. Pakai framer-motion (atau CSS animation untuk yang sederhana). Kerjakan sesuai urutan prioritas.
+
+## Aturan Global (berlaku untuk semua animasi di bawah)
+
+- Hanya animate `transform` dan `opacity` — jangan pernah animate properti layout (width/height/top/left).
+- `prefers-reduced-motion: reduce` → semua animasi dekoratif mati, elemen tampil statis langsung.
+- Durasi micro-interaction 150-300ms; entrance 400-600ms; easing pakai ease-out/spring halus. Jangan ada animasi yang bikin user NUNGGU (kecuali gacha, itu memang show).
+- Mobile harus tetap 60fps — kalau ragu antara dua efek, pilih yang lebih ringan.
+
+## PRIORITAS 1 — Momen Emosional (di sinilah effort terbesar)
+
+**1a. Gacha kartu (/join & entry baru)** — sempurnakan yang sudah ada jadi ritual 3 babak:
+- Babak 1 (antisipasi): deck dikocok cepat, kartu-kartu saling silang, glow ungu berdenyut, teks "Tap buat narik kartu lo 👆" muncul pulsing.
+- Babak 2 (tarik): kartu terpilih melesat ke tengah, layar lain gelap sesaat (overlay opacity), kartu bergetar halus 400ms seolah "nahan".
+- Babak 3 (reveal): flip 3D, burst partikel/confetti ungu dari belakang kartu, emoji anomali pop dengan spring scale (0.5 → 1.1 → 1), nama anomali fade-up. Total babak 2+3 maksimal ~2.5 detik.
+
+**1b. Klaim hadiah AINA (/status):**
+- Tombol "Klaim Akses AINA 🎁" idle: glow bernapas pelan.
+- Saat klaim sukses: box kode muncul dengan efek "unboxing" — scale-up spring + flash glow ungu + confetti sekali (jangan loop), logo AINA fade-in di atasnya, kode ter-reveal per karakter cepat (stagger 30ms/karakter). Tombol copy pulse sekali sebagai hint.
+
+**1c. Vote ❤️ (/gallery):**
+- Tap: heart membesar spring (1 → 1.35 → 1), burst 5-6 partikel kecil, angka vote naik dengan animasi count (angka lama slide-up keluar, baru slide-in). Un-vote: heart mengecil sekejap, tanpa partikel.
+
+## PRIORITAS 2 — Layar TV /live (dilihat orang banyak sepanjang event)
+
+- Karya baru masuk grid: pop-in spring + flash glow ungu 1x + badge "BARU ✨" yang fade-out setelah 5 detik.
+- Transisi spotlight: crossfade + zoom halus (scale 1 → 1.03 selama tampil, efek Ken Burns pelan).
+- Strip leaderboard: saat urutan berubah, baris bergeser posisi dengan animasi FLIP (bukan hilang-muncul) — orang harus BISA LIHAT karya naik peringkat, itu drama-nya.
+- Mode WINNER SHOWCASE: entrance tiap juara = poster slide-up + glow emas/ungu, confetti loop pelan di background (density rendah, jangan norak), badge kategori stamp-in (scale 1.4 → 1 dengan sedikit rotasi).
+- QR code: pulse glow sangat halus tiap ~8 detik buat narik mata.
+
+## PRIORITAS 3 — Hero & Landing
+
+- Entrance sekali saat load: badge AINA → judul (3 baris stagger fade-up 80ms antar baris) → tagline → countdown → counter, total < 1.2 detik.
+- Kata "POSTER" (yang ungu): glow berdenyut sangat pelan (4-5 detik per siklus).
+- Countdown: digit yang berubah animasi slide-vertikal (lama keluar atas, baru masuk bawah). Saat sisa waktu < 1 jam: kotak countdown berubah nuansa merah + pulse — urgensi.
+- Counter "X karya terdaftar": saat angka naik (realtime), angka bounce kecil.
+- Floating cards & marquee yang sudah ada: JANGAN diubah, sudah benar.
+
+## PRIORITAS 4 — Detail Halus (kerjakan kalau semua di atas beres)
+
+- Semua tombol utama: hover naik 2px + glow menguat; press scale 0.97.
+- Tombol "Ikut Lagi 🎲": emoji dadu wiggle (rotasi ±15°) tiap beberapa detik.
+- Galeri & leaderboard: kartu/baris entrance stagger fade-up saat pertama masuk viewport (sekali saja, jangan re-trigger tiap scroll).
+- Feed "Baru Bergabung" (/leaderboard): item baru slide-in dari atas + highlight ungu yang memudar 2 detik.
+- Stepper misi (/status): step yang baru selesai — checkmark draw-in (SVG stroke) + garis penghubung terisi progresif.
+- Halaman admin: TANPA animasi dekoratif sama sekali — cuma transisi state sederhana (fade 150ms). Admin butuh cepat, bukan cantik.
+
+## Catatan Eksekusi
+
+- Kalau framer-motion belum terpasang, install. Bundle size diperhatikan — import per-komponen.
+- `npm run build` harus lolos.
+- Di akhir: daftar animasi yang diimplementasi per halaman + konfirmasi reduced-motion sudah dihormati.

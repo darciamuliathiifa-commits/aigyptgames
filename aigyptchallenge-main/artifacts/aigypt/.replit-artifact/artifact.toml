@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "AIGYPT Poster Challenge"
+version = "1.0.0"
+id = "artifacts/aigypt"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22064
+
+[services.development]
+run = "pnpm --filter @workspace/aigypt run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aigypt", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/aigypt/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22064"
+BASE_PATH = "/"

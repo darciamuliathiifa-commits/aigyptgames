@@ -1,0 +1,27 @@
+kind = "video"
+previewPath = "/aigypt-video/"
+title = "AIGYPT Poster Challenge — Promo Video"
+version = "1.0.0"
+id = "artifacts/aigypt-video"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/aigypt-video/" ]
+localPort = 22467
+
+[services.development]
+run = "pnpm --filter @workspace/aigypt-video run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aigypt-video", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/aigypt-video/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22467"
+BASE_PATH = "/aigypt-video/"

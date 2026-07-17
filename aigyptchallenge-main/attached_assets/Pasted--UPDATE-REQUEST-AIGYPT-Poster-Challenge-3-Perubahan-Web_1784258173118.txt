@@ -1,0 +1,70 @@
+# UPDATE REQUEST: AIGYPT Poster Challenge — 3 Perubahan
+
+Website sudah live dan berfungsi. JANGAN rombak struktur, database existing, atau desain yang sudah ada. Kerjakan HANYA 3 perubahan di bawah ini.
+
+## Perubahan 1 — Misi: Foto Tenant Sendiri (bukan download foto base)
+
+Ganti Step 1 di halaman Misi/prompt. Sekarang tertulis "Download Foto Base" dengan tombol Download Foto — HAPUS seluruh mekanik download foto base.
+
+Ganti dengan:
+
+- **Judul step 1: "Foto Tenant AIGYPT Pake HP Lo 📸"**
+- Deskripsi: "Datengin tenant AIGYPT, foto booth-nya langsung pake kamera HP lo. Bebas angle-nya — makin unik makin bagus. Foto ini yang bakal jadi bahan dasar poster lo."
+- Tips kecil di bawahnya (teks muted): "Pastikan logo/tulisan AIGYPT keliatan jelas di fotonya."
+- Tidak ada upload di step ini — fotonya cukup tersimpan di galeri HP peserta.
+
+Sesuaikan step berikutnya (prompt AI): instruksinya sekarang "upload foto tenant yang barusan lo jepret sebagai gambar referensi di Gemini/ChatGPT, lalu paste prompt ini". Isi prompt template TIDAK berubah.
+
+Sesuaikan juga daftar langkah misi di landing page dan stepper di halaman status supaya konsisten dengan misi baru ini (step pertama = foto tenant sendiri).
+
+Hapus file/asset foto base lama dan tombol downloadnya dari seluruh halaman.
+
+## Perubahan 2 — Pasang Logo
+
+Dua file logo akan gue taruh di folder `public/`:
+
+- `public/favicon_AIGYPT.png` — logomark segitiga ungu AIGYPT
+- `public/LOGO_AINA.png` — logo AINA versi PUTIH (transparan background — hanya terlihat di background gelap, JANGAN pernah ditaruh di atas background terang)
+
+Pemasangan:
+
+1. **Favicon & meta**: jadikan `favicon_AIGYPT.png` sebagai favicon site + apple-touch-icon + og:image fallback.
+2. **Navbar**: ganti icon placeholder di sebelah tulisan "AIGYPT" dengan `favicon_AIGYPT.png` (ukuran ~28px, jangan distorsi).
+3. **Semua elemen hadiah AINA** (banner hadiah di landing, tombol/section "Klaim Akses AINA" di halaman status, strip QR di layar /live): tampilkan `LOGO_AINA.png` di samping teksnya, tinggi ~20-24px, selalu di atas background gelap/ungu.
+4. **Footer** kecil di semua halaman publik: logomark AIGYPT + teks "AIGYPT × AINA".
+
+## Perubahan 3 — Card Contoh Karya (dikelola dari Admin Panel)
+
+Tambah section "Contoh Karyanya Kayak Gini 👇" yang muncul SEBELUM user mulai misi:
+
+- **Lokasi tampil**: di landing page (setelah langkah misi, sebelum CTA "Ikutan Sekarang") dan di halaman Misi (di atas step 1).
+- **Bentuk**: carousel/scroll horizontal berisi card contoh poster — gambar poster rasio 4:5, rounded-2xl, glow ungu halus, caption kecil di bawahnya (misal nama anomali yang dipakai). Bisa di-swipe di mobile.
+- Kalau belum ada contoh yang di-upload, section ini disembunyikan total (jangan tampil kosong).
+
+**Backend**:
+
+```sql
+create table example_posters (
+  id uuid primary key default gen_random_uuid(),
+  image_url text not null,
+  caption text,
+  sort_order int default 0,
+  active boolean default true,
+  created_at timestamptz default now()
+);
+```
+
+- RLS: select anon hanya baris `active = true`; insert/update/delete hanya service role.
+- Simpan gambarnya di bucket storage yang sudah ada.
+- Tulis SQL-nya sebagai file migration terpisah (`supabase/migration_v2.sql`) — gue jalankan manual, JANGAN otomatis.
+
+**Admin Panel** — tambah tab baru "Contoh Karya":
+
+- Upload gambar (preview sebelum simpan), field caption opsional, drag/tombol untuk atur urutan (sort_order), toggle aktif/nonaktif, tombol hapus.
+- Upload lewat API route server-side seperti mutasi admin lainnya.
+
+## Catatan Eksekusi
+
+- Pertahankan gaya visual yang sudah ada (dark purple theme) — perubahan ini harus terasa seamless.
+- Pastikan `npm run build` tetap lolos.
+- Di akhir, kasih gue ringkasan: file apa saja yang berubah + reminder jalankan `migration_v2.sql` + reminder taruh 2 file logo di `public/`.

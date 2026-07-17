@@ -1,0 +1,48 @@
+# UPDATE REQUEST: AIGYPT Poster Challenge — Mobile Sempurna + Floating Cards di Hero
+
+Website sudah live. JANGAN rombak struktur, database, atau fitur yang sudah jalan. Kerjakan HANYA 2 hal ini.
+
+## Bagian 1 — Floating Example Cards di Hero Section
+
+Tampilkan contoh karya (dari tabel `example_posters` yang sudah ada, baris `active = true`, urut `sort_order`) sebagai kartu poster melayang yang menghiasi hero section landing page.
+
+**Desktop (≥1024px):**
+- 4-6 kartu poster (rasio 4:5, rounded-2xl, border ungu tipis + glow halus) tersebar di area kiri dan kanan hero — mengapit judul "AIGYPT POSTER CHALLENGE", TIDAK menutupi judul, badge AINA, countdown, atau counter karya.
+- Tiap kartu: ukuran bervariasi (120-180px lebar), rotasi acak tipis (-8° s/d 8°), animasi float lembut naik-turun (translateY ±10-15px, durasi 4-7 detik, delay beda-beda tiap kartu biar gak serempak), opacity ~0.85.
+- Hover di kartu → naik sedikit, glow menguat, rotasi ke 0°. Klik → buka lightbox sederhana (gambar besar + caption).
+- Kartu di layer BELAKANG konten hero (z-index di bawah teks), jadi teks selalu terbaca.
+
+**Mobile (<1024px):**
+- Kartu samping tidak muat — ganti jadi **marquee horizontal auto-scroll** tepat di bawah countdown: strip kartu contoh (lebar ~110px) bergerak pelan terus-menerus (loop seamless, duplikasi list untuk infinite scroll), tiap kartu tetap rotasi tipis biar playful.
+- Marquee bisa disentuh/di-swipe manual; auto-scroll lanjut lagi setelah dilepas.
+- Tap kartu → lightbox yang sama.
+
+**Aturan untuk keduanya:**
+- Kalau `example_posters` kosong → elemen ini tidak dirender sama sekali.
+- `prefers-reduced-motion: reduce` → matikan semua animasi float/marquee, kartu tampil statis.
+- Gambar pakai lazy load + ukuran ter-resize (thumbnail), JANGAN load file full-res di hero — hero harus tetap cepat di 4G.
+- Animasi hanya pakai `transform` dan `opacity` (GPU-friendly), jangan animate properti layout.
+
+## Bagian 2 — Optimasi Mobile Menyeluruh
+
+Mayoritas trafik dari HP di lokasi event (scan QR). Audit dan rapikan SEMUA halaman publik di viewport 360px-430px:
+
+1. **Tidak ada horizontal overflow** di halaman manapun — cek terutama hero (judul besar), countdown, tabel/list leaderboard, dan grid galeri.
+2. **Hero mobile**: judul pakai `clamp()` biar gak kepotong di 360px; countdown 4 kotak (HARI:JAM:MNT:DTK) diperkecil proporsional dan tetap satu baris; badge AINA boleh wrap 2 baris dengan rapi.
+3. **Navbar mobile**: logo + nama di kiri, link Galeri/Skor collapse ke menu hamburger atau icon-only, tombol "Misi" tetap selalu terlihat (itu CTA utama).
+4. **Tap target minimal 44×44px** untuk semua tombol, link nav, tombol vote ❤️, dan kartu.
+5. **Form** (join & submit): font-size input ≥16px (mencegah auto-zoom iOS), tombol submit full-width, upload foto langsung bisa akses kamera (`<input accept="image/*">` — JANGAN pakai atribut capture, biar user bebas pilih kamera atau galeri).
+6. **Gacha kartu** di /join: pastikan animasi tarik + flip 3D mulus di layar sempit, kartu hasil reveal muat penuh tanpa scroll horizontal.
+7. **Galeri & leaderboard**: grid galeri 2 kolom di mobile; baris leaderboard compact (thumbnail kecil, nama truncate dengan ellipsis, vote count selalu terlihat).
+8. **Halaman status**: stepper misi vertikal di mobile, tombol "Klaim Akses AINA" full-width, kode hadiah dalam box besar mudah dibaca + tombol copy gede.
+9. **Admin panel di HP**: gue bakal verifikasi karya dari HP di lokasi — pastikan tab Verifikasi nyaman dipakai di mobile: preview poster besar, link IG mudah ditap, tombol Verifikasi/Tolak besar dan berjauhan (jangan sampai salah pencet).
+10. **Safe area**: hormati `env(safe-area-inset-*)` untuk notch/home indicator.
+11. `/live` TIDAK perlu dioptimasi mobile — itu khusus layar TV, biarkan.
+
+**Konsistensi desktop ↔ mobile**: elemen dan urutannya sama, hanya layout yang beradaptasi. Jangan ada fitur yang hilang di mobile.
+
+## Catatan Eksekusi
+
+- Pertahankan gaya visual existing (dark purple, glow ungu).
+- `npm run build` harus tetap lolos.
+- Di akhir, kasih ringkasan file yang berubah + daftar halaman yang sudah dicek di 360px.
