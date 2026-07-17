@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -47,7 +47,7 @@ function AdminLogin() {
   const onSubmit = (data: z.infer<typeof loginSchema>) => {
     loginMutation.mutate({ data }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['/api/admin/auth/check'] });
+        window.location.reload();
       },
       onError: () => toast({ title: "Login Gagal", variant: "destructive" })
     });
@@ -126,7 +126,7 @@ function TabVerifikasi() {
 
   if (!pending || pending.length === 0) return (
     <div className="text-center py-20 text-muted-foreground border border-dashed rounded-xl">
-      Tidak ada antrian verifikasi. Yey! 🎉
+      Tidak ada antrian verifikasi. Yey! ðŸŽ‰
     </div>
   );
 
@@ -173,13 +173,13 @@ function TabVerifikasi() {
               onClick={() => handleVerify(sub.id, 'verified')}
               className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 shadow-[0_0_15px_rgba(124,58,237,0.3)] min-h-[52px]"
             >
-              ✓ Verify
+              âœ“ Verify
             </button>
             <button
               onClick={() => handleVerify(sub.id, 'rejected')}
               className="w-full py-3.5 rounded-xl border-2 border-destructive text-destructive font-bold text-base hover:bg-destructive/10 min-h-[52px]"
             >
-              ✗ Tolak
+              âœ— Tolak
             </button>
           </div>
         </div>
@@ -284,9 +284,9 @@ function TabVoting() {
                         className="bg-input border border-border rounded p-2 text-sm focus:border-primary w-full max-w-[200px]"
                       >
                         <option value="">- Bukan Juara -</option>
-                        <option value="Paling Kreatif">🏆 Paling Kreatif</option>
-                        <option value="Paling Absurd">🏆 Paling Absurd</option>
-                        <option value="Paling Niat">🏆 Paling Niat</option>
+                        <option value="Paling Kreatif">ðŸ† Paling Kreatif</option>
+                        <option value="Paling Absurd">ðŸ† Paling Absurd</option>
+                        <option value="Paling Niat">ðŸ† Paling Niat</option>
                       </select>
                     </td>
                   </tr>
@@ -403,7 +403,7 @@ function TabKode() {
   );
 }
 
-// ─── TAB CONTOH KARYA ────────────────────────────────────────────────────────
+// â”€â”€â”€ TAB CONTOH KARYA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface ExamplePoster {
   id: string;
@@ -502,7 +502,7 @@ function TabContohKarya() {
               <img src={previewUrl} className="w-full h-full object-cover" alt="preview" />
             ) : (
               <div className="text-center text-muted-foreground text-sm px-4">
-                <div className="text-3xl mb-2">🖼️</div>
+                <div className="text-3xl mb-2">ðŸ–¼ï¸</div>
                 Klik untuk pilih gambar
               </div>
             )}
@@ -532,7 +532,7 @@ function TabContohKarya() {
             className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-lg disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {uploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {uploading ? 'Mengupload…' : 'Tambahkan'}
+            {uploading ? 'Menguploadâ€¦' : 'Tambahkan'}
           </button>
         </div>
       </div>
@@ -587,7 +587,7 @@ function TabContohKarya() {
   );
 }
 
-// ─── TAB LEADS ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ TAB LEADS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function TabLeads() {
   const { data, isLoading } = useAdminListParticipants();
@@ -655,7 +655,7 @@ function TabLeads() {
                   <a href={`https://instagram.com/${p.ig_handle.replace('@', '')}`} target="_blank" className="text-primary hover:underline">{p.ig_handle}</a>
                 </td>
                 <td className="p-4 text-center">
-                  {p.wants_class_info ? <span className="text-green-500 font-bold">✓</span> : <span className="text-muted-foreground">-</span>}
+                  {p.wants_class_info ? <span className="text-green-500 font-bold">âœ“</span> : <span className="text-muted-foreground">-</span>}
                 </td>
                 <td className="p-4 text-center">
                   <span className="font-bold text-primary">{p.entry_count ?? 0}</span>
@@ -684,3 +684,4 @@ function TabLeads() {
     </div>
   );
 }
+
