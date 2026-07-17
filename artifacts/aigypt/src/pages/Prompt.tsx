@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useGetParticipant } from '@workspace/api-client-react';
 import { Navbar } from '@/components/Navbar';
@@ -21,7 +21,7 @@ export default function Prompt() {
     query: {
       enabled: !!participantId,
       queryKey: ['participant', participantId!],
-      // 404 = ID di localStorage sudah tidak ada di database → jangan retry
+      // 404 = ID di localStorage sudah tidak ada di database â†’ jangan retry
       retry: (failureCount, err) => (err as any)?.status !== 404 && failureCount < 2,
     }
   });
@@ -31,7 +31,7 @@ export default function Prompt() {
   }, [participantId, setLocation]);
 
   // ID peserta di localStorage sudah tidak ada di database (mis. DB direset /
-  // ganti project Supabase) → bersihkan sesi lama dan arahkan ke /join,
+  // ganti project Supabase) â†’ bersihkan sesi lama dan arahkan ke /join,
   // jangan nge-hang di "Loading..." selamanya.
   // Guard: jangan redirect kalau query lagi fetching ulang (bisa ada cached
   // error dari sesi sebelumnya yang belum sempat di-refresh).
@@ -48,7 +48,7 @@ export default function Prompt() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center text-center px-6 text-sm text-muted-foreground">
         {status === 404
-          ? 'Sesi lama tidak ditemukan — mengalihkan ke pendaftaran…'
+          ? 'Sesi lama tidak ditemukan â€” mengalihkan ke pendaftaranâ€¦'
           : 'Gagal memuat data. Coba refresh halaman ini.'}
       </div>
     );
@@ -110,13 +110,13 @@ Kualitas: ultra detail, komposisi poster profesional, aspect ratio 4:5.`;
           <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center shrink-0">1</div>
-              <h3 className="font-bold">Foto Tenant AIGYPT Pake HP Lo 📸</h3>
+              <h3 className="font-bold">Foto Tenant AIGYPT Pake HP Lo ðŸ“¸</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-              Datengin tenant AIGYPT, foto booth-nya langsung pake kamera HP lo. Bebas angle-nya — makin unik makin bagus. Foto ini yang bakal jadi bahan dasar poster lo.
+              Datengin tenant AIGYPT, foto booth-nya langsung pake kamera HP lo. Bebas angle-nya â€” makin unik makin bagus. Foto ini yang bakal jadi bahan dasar poster lo.
             </p>
             <p className="text-xs text-muted-foreground/70 italic">
-              💡 Pastikan logo/tulisan AIGYPT keliatan jelas di fotonya.
+              ðŸ’¡ Pastikan logo/tulisan AIGYPT keliatan jelas di fotonya.
             </p>
           </div>
 
@@ -129,6 +129,15 @@ Kualitas: ultra detail, komposisi poster profesional, aspect ratio 4:5.`;
             <p className="text-sm text-muted-foreground mb-4">
               Buka Gemini atau ChatGPT, <span className="text-foreground font-semibold">upload foto tenant yang barusan lo jepret</span> sebagai gambar referensi, lalu paste prompt ini.
             </p>
+
+            <a
+              href="/aigypt-logo.png"
+              download="Logo-AIGYPT.png"
+              className="mb-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-primary/40 bg-primary/10 text-primary font-bold hover:bg-primary/20 transition-all"
+            >
+              <Download className="w-4 h-4" />
+              Download Logo AIGYPT
+            </a>
 
             <div className="relative group">
               <div className="bg-black/50 border border-primary/20 rounded-xl p-4 font-mono text-sm text-primary-foreground/90 whitespace-pre-wrap leading-relaxed">
@@ -161,7 +170,7 @@ Kualitas: ultra detail, komposisi poster profesional, aspect ratio 4:5.`;
             onClick={() => setLocation('/submit')}
             className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-lg shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:bg-primary/90 transition-all"
           >
-            Udah Post di IG! Lanjut →
+            Udah Post di IG! Lanjut â†’
           </button>
         </div>
 
@@ -170,3 +179,4 @@ Kualitas: ultra detail, komposisi poster profesional, aspect ratio 4:5.`;
     </div>
   );
 }
+
