@@ -184,7 +184,7 @@ export default function Join() {
             >
               <h1 className="font-display font-bold text-2xl mb-2 text-center">Daftar Misi</h1>
               <p className="text-muted-foreground text-center text-sm mb-6">
-                Masukkan data lo untuk mulai dan tarik kartu anomali.
+                Masukkan data kamu untuk mulai dan tarik kartu anomali.
               </p>
 
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -297,7 +297,7 @@ export default function Join() {
               animate={{ opacity: 1 }}
               className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md flex flex-col items-center justify-center p-4"
             >
-              <h2 className="font-display font-bold text-3xl mb-10 text-center animate-pulse text-primary">Tarik Kartu Lo!</h2>
+              <h2 className="font-display font-bold text-3xl mb-10 text-center animate-pulse text-primary">Tarik Kartu Kamu!</h2>
 
               <div className="relative w-full max-w-sm h-80 flex items-center justify-center">
                 {[0, 1, 2, 3, 4].map((i) => (
@@ -334,7 +334,7 @@ export default function Join() {
               className="flex flex-col items-center"
             >
               <h2 className="font-display font-bold text-2xl mb-8 text-center">
-                {gameState === 'done' ? 'Kartu Lo:' : 'Dapet...'}
+                {gameState === 'done' ? 'Kartu Kamu:' : 'Dapet...'}
               </h2>
 
               <div className="mb-10 w-full max-w-[280px]">
@@ -349,7 +349,7 @@ export default function Join() {
                   className="w-full space-y-4"
                 >
                   <div className="bg-primary/10 border border-primary/30 p-4 rounded-xl text-center mb-6">
-                    <p className="text-sm font-bold text-primary-foreground">Target lo sekarang:</p>
+                    <p className="text-sm font-bold text-primary-foreground">Target kamu sekarang:</p>
                     <p className="text-muted-foreground text-sm mt-1">Gabungin anomali ini ke dalam postermu.</p>
                   </div>
 

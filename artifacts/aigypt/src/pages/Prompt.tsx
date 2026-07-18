@@ -110,10 +110,10 @@ Kualitas: ultra detail, komposisi poster profesional, aspect ratio 4:5.`;
           <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center shrink-0">1</div>
-              <h3 className="font-bold">Foto Tenant AIGYPT Pake HP Lo 📸</h3>
+              <h3 className="font-bold">Foto Tenant AIGYPT Pake HP Kamu 📸</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-              Datengin tenant AIGYPT, foto booth-nya langsung pake kamera HP lo. Bebas angle-nya — makin unik makin bagus. Foto ini yang bakal jadi bahan dasar poster lo.
+              Datengin tenant AIGYPT, foto booth-nya langsung pake kamera HP kamu. Bebas angle-nya — makin unik makin bagus. Foto ini yang bakal jadi bahan dasar poster kamu.
             </p>
             <p className="text-xs text-muted-foreground/70 italic">
               💡 Pastikan logo/tulisan AIGYPT keliatan jelas di fotonya.
@@ -127,7 +127,7 @@ Kualitas: ultra detail, komposisi poster profesional, aspect ratio 4:5.`;
               <h3 className="font-bold">Copy Prompt</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              Buka Gemini atau ChatGPT, <span className="text-foreground font-semibold">upload foto tenant yang barusan lo jepret</span> sebagai gambar referensi, lalu paste prompt ini.
+              Buka Gemini atau ChatGPT, <span className="text-foreground font-semibold">upload foto tenant yang barusan kamu jepret</span> sebagai gambar referensi, lalu paste prompt ini.
             </p>
 
             <a

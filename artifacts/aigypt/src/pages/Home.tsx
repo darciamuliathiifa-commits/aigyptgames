@@ -106,7 +106,7 @@ export default function Home() {
 
             {/* ── 4. Tagline ── */}
             <p className="text-muted-foreground font-medium text-sm md:text-base max-w-sm mx-auto leading-relaxed text-center mb-7 px-2">
-              Foto tenant AIGYPT pake HP lo, gacha kartu anomali, biarin AI yang ngegas.{' '}
+              Foto tenant AIGYPT pake HP kamu, gacha kartu anomali, biarin AI yang ngegas.{' '}
               <br className="hidden sm:block" />
               3 kesempatan. Vote terbanyak menang. Semua yang kelar dapet akses AINA.
             </p>
@@ -118,7 +118,7 @@ export default function Home() {
                 href="/join"
                 className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-xl text-center shadow-[0_0_30px_rgba(124,58,237,0.5)] hover:shadow-[0_0_50px_rgba(124,58,237,0.7)] hover:bg-primary/90 transition-all hover:-translate-y-0.5 min-h-[56px] flex items-center justify-center gap-2"
               >
-                Tarik Kartu Lo{' '}
+                Tarik Kartu Kamu{' '}
                 <span className="dice-wiggle inline-block">🎲</span>
               </Link>
               {/* Secondary CTA — ghost/outline */}
@@ -158,7 +158,7 @@ export default function Home() {
               {[
                 { num: '1', title: 'Daftar', desc: 'Isi form dan dapatkan ID peserta.' },
                 { num: '2', title: 'Tarik Kartu Anomali', desc: 'Dapatkan elemen kejutan secara acak untuk postermu.' },
-                { num: '3', title: 'Foto Tenant & Bikin Poster', desc: 'Foto booth AIGYPT pake HP lo, upload ke Gemini/ChatGPT, buat poster sinematik dengan anomalimu.' },
+                { num: '3', title: 'Foto Tenant & Bikin Poster', desc: 'Foto booth AIGYPT pake HP kamu, upload ke Gemini/ChatGPT, buat poster sinematik dengan anomalimu.' },
                 { num: '4', title: 'Upload ke IG', desc: 'Post hasilnya dan tag @ai.gypt biar sah.' },
                 { num: '5', title: 'Daftarkan & Klaim Hadiah', desc: 'Masukin link IG-mu, tunggu verifikasi, dan ambil akses AINA!' },
               ].map((step, i) => (

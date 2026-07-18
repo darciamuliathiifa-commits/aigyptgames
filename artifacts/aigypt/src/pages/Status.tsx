@@ -265,7 +265,7 @@ export default function Status() {
         {/* ── JATAH HABIS ── */}
         {entryCount >= 3 && (
           <div className="bg-card border border-border rounded-2xl p-5 text-center">
-            <p className="font-bold text-muted-foreground">Jatah percobaan lo udah habis (3/3) — pantau votenya! 🔥</p>
+            <p className="font-bold text-muted-foreground">Jatah percobaan kamu udah habis (3/3) — pantau votenya, ya! 🔥</p>
           </div>
         )}
 
@@ -305,7 +305,7 @@ export default function Status() {
                   >
                     <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary via-transparent to-transparent pointer-events-none"></div>
 
-                    <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2">Kode Akses Lo</h3>
+                    <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2">Kode Akses Kamu</h3>
 
                     <div className="my-6 relative inline-block">
                       <div className="text-4xl md:text-5xl font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-300 tracking-wider">

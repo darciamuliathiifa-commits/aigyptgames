@@ -9,15 +9,19 @@ interface ExamplePoster {
 }
 
 // Deterministic configs — no random at render time
+// topPct dihitung relatif ke tinggi seluruh hero section (badge sampai
+// countdown). Sebelumnya nangkring di 4%/10% dari atas — nabrak baris
+// navbar. Sekarang digeser ke ~55-88%, sejajar sama tombol "Tarik Kartu"
+// dan area countdown di bawahnya.
 const LEFT_CONFIGS = [
-  { topPct: 4,  rotate: -6, width: 155, dur: '5.2s', delay: '0s'   },
-  { topPct: 35, rotate:  4, width: 132, dur: '6.8s', delay: '1.4s' },
-  { topPct: 65, rotate: -8, width: 162, dur: '4.6s', delay: '0.8s' },
+  { topPct: 55, rotate: -6, width: 155, dur: '5.2s', delay: '0s'   },
+  { topPct: 70, rotate:  4, width: 132, dur: '6.8s', delay: '1.4s' },
+  { topPct: 85, rotate: -8, width: 162, dur: '4.6s', delay: '0.8s' },
 ];
 const RIGHT_CONFIGS = [
-  { topPct: 10, rotate:  7, width: 142, dur: '6.1s', delay: '0.3s' },
-  { topPct: 42, rotate: -4, width: 170, dur: '5.5s', delay: '2.0s' },
-  { topPct: 70, rotate:  5, width: 126, dur: '7.0s', delay: '1.1s' },
+  { topPct: 60, rotate:  7, width: 142, dur: '6.1s', delay: '0.3s' },
+  { topPct: 75, rotate: -4, width: 170, dur: '5.5s', delay: '2.0s' },
+  { topPct: 90, rotate:  5, width: 126, dur: '7.0s', delay: '1.1s' },
 ];
 const MARQUEE_ROTATIONS = [-3, 2, -5, 4, -2, 3, -4, 2];
 

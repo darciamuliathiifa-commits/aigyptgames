@@ -68,6 +68,31 @@ Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
   (`?width=&quality=`) — worth dipakai biar gambar yang di-download HP
   otomatis lebih kecil daripada file asli.
 
+## Perubahan tampilan & nada tulisan (18 Jul, batch 11)
+- **Gambar poster mengambang digeser turun** — sebelumnya nangkring di
+  pojok atas (4-10% dari atas), nabrak visual sama baris navbar. Sekarang
+  digeser ke area 55-90%, sejajar sama tombol "Tarik Kartu" dan countdown
+  di bawahnya. **Catatan jujur**: posisi ini dihitung berdasarkan proporsi
+  konten (badge → judul → deskripsi → tombol → countdown), bukan hasil
+  lihat langsung di browser — kemungkinan perlu digeser dikit lagi kalau
+  di device asli ternyata belum pas persis. Kalau masih kurang pas,
+  kasih tau posisi yang lo mau (lebih tinggi/rendah), gampang di-tweak.
+
+- **Nada tulisan diganti dari "lo/gue" ke "kamu"** di SELURUH halaman
+  publik (Hub, Home/Challenge, Join, Submit, Status, Prompt) — 16 baris
+  total di 6 file. Tetap santai dan penuh energi (emoji, tanda seru,
+  kata-kata kayak "ngegas"/"gacha" masih dipertahankan), cuma kata ganti
+  orangnya lebih sopan. Panel admin (`Admin.tsx`) sengaja nggak disentuh
+  karena itu tool internal buat panitia, bukan halaman publik.
+
+- **Font judul diganti dari Plus Jakarta Sans ke Unbounded** — biar lebih
+  berkarakter dan "gede" secara visual, cocok sama vibe poster/gaming-nya
+  AIGYPT. Body text tetap Plus Jakarta Sans. **Catatan jujur juga**:
+  Unbounded itu font yang lebar/tebal — kalau di headline gede banget
+  (judul utama di halaman Home) kerasa terlalu berat/padet, kasih tau,
+  gampang diganti ke alternatif lain yang lebih ramping (misalnya
+  Big Shoulders Display, cocok juga buat vibe poster tapi lebih ramping).
+
 ## Redesign navbar (18 Jul, batch 10)
 - **Bug yang ketemu**: navbar SELALU nampilin menu "Galeri / Skor / Misi",
   bahkan pas lagi di halaman **Hub** (menu pilihan game) — padahal di situ

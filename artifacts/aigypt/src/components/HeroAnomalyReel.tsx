@@ -48,7 +48,7 @@ export function HeroAnomalyReel() {
   return (
     <div className="flex flex-col items-center gap-0.5 mb-5 px-4 text-center" aria-live="polite">
       <span className="text-muted-foreground text-xs md:text-sm">
-        Kartu lo bisa jadi:
+        Kartu kamu bisa jadi:
       </span>
       {/* Fixed-height clipping box for the sliding text */}
       <div className="overflow-hidden" style={{ height: '1.75rem' }}>
