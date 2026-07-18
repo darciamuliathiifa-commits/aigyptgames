@@ -80,7 +80,7 @@ export default function Hub() {
             PILIH
           </span>
           <span className="block" style={{ animation: 'hero-line-in 0.5s ease-out both', animationDelay: '80ms' }}>
-            <span className="hero-shimmer">GAME LO</span>
+            <span className="hero-shimmer">GAME SERUMU</span> 🎲
           </span>
         </h1>
 

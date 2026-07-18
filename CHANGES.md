@@ -68,6 +68,24 @@ Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
   (`?width=&quality=`) — worth dipakai biar gambar yang di-download HP
   otomatis lebih kecil daripada file asli.
 
+## Perubahan tampilan (18 Jul, batch 9)
+- **Font judul (headline) sekarang Plus Jakarta Sans** — sebelumnya semua
+  `<h1>`-`<h6>` di seluruh situs pakai Space Grotesk, teks biasa pakai
+  Plus Jakarta Sans (dua keluarga font beda). Sekarang disatukan jadi
+  Plus Jakarta Sans semua, judul & body serasi. Bonus: satu font family
+  lebih dikit di-load dari Google Fonts = dikit lebih ringan/cepet juga.
+- **Headline halaman utama Hub diganti** dari "PILIH GAME LO" jadi
+  "PILIH GAME SERUMU 🎲" — nada tetap ramai/seru, tanpa bahasa gaul
+  "lo/gue". Sisa copy di Hub (subtitle, tombol "Gas Main", dst) udah
+  dicek, memang dari awal nggak pakai lo/gue.
+  - **Catatan**: halaman lain (Home/`/challenge`, Join, Submit, Status,
+    Prompt) itu teks aslinya dari repo sebelum gue pegang, dan memang
+    banyak pakai gaya "lo/gue" di seluruh body copy (bukan cuma judul).
+    Kalau mau nada itu diganti juga di halaman-halaman itu (bukan cuma
+    judul Hub), bilang aja — itu revisi copy yang lebih luas, sengaja
+    belum disentuh sekarang biar nggak mengubah suara/branding yang
+    mungkin memang sengaja dipilih buat challenge ini.
+
 ## Fitur baru (18 Jul, batch 7)
 - **Admin bisa hapus peserta (buat bersihin spam/duplikat)** — tab baru
   di **Leads**, tiap baris peserta ada tombol hapus (ikon tempat sampah).
