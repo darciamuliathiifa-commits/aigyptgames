@@ -9,6 +9,7 @@ import prizesRouter from "./prizes";
 import settingsRouter from "./settings";
 import adminRouter from "./admin";
 import examplePostersRouter from "./examplePosters";
+import racikRouter from "./racik";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(prizesRouter);
 router.use(settingsRouter);
 router.use(adminRouter);
 router.use(examplePostersRouter);
+router.use(racikRouter);
 
 export default router;

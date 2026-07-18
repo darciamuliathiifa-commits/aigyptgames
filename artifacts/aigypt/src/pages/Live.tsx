@@ -82,7 +82,7 @@ export default function Live() {
         <div className="columns-4 sm:columns-6 lg:columns-8 gap-4 space-y-4 p-4 animate-scroll-vertical h-[200%]">
           {[...gallery, ...gallery, ...gallery].map((entry, i) => (
             <div key={`${entry.submission_id}-${i}`} className="break-inside-avoid">
-              <img src={entry.image_url} alt="" className="w-full rounded-lg filter grayscale opacity-60" />
+              <img src={entry.image_url ?? undefined} alt="" className="w-full rounded-lg filter grayscale opacity-60" />
             </div>
           ))}
         </div>
@@ -123,7 +123,7 @@ export default function Live() {
                     🏆 {winner.winner_category}
                   </div>
                   <div className="w-[400px] aspect-[4/5] rounded-2xl overflow-hidden border-[6px] border-amber-500/50 shadow-[0_0_50px_rgba(245,158,11,0.3)] relative group">
-                    <img src={winner.image_url} className="w-full h-full object-cover" alt="" />
+                    <img src={winner.image_url ?? undefined} className="w-full h-full object-cover" alt="" />
                     <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/90 to-transparent">
                       <h2 className="font-display font-bold text-3xl text-white">{winner.name}</h2>
                       <p className="text-xl text-primary-foreground/80">{winner.ig_handle}</p>
@@ -148,7 +148,7 @@ export default function Live() {
                 
                 <div className="bg-card border-2 border-primary/50 rounded-[2rem] p-4 shadow-[0_0_50px_rgba(124,58,237,0.4)] flex bg-opacity-80 backdrop-blur-xl">
                   <div className="w-2/3 aspect-[4/5] rounded-xl overflow-hidden shadow-inner bg-muted shrink-0 relative">
-                    <img src={gallery[spotlightIndex].image_url} alt="" className="w-full h-full object-cover" />
+                    <img src={gallery[spotlightIndex].image_url ?? undefined} alt="" className="w-full h-full object-cover" />
                   </div>
                   
                   <div className="w-1/3 p-8 flex flex-col justify-center gap-6">
@@ -189,7 +189,7 @@ export default function Live() {
                   {idx + 1}
                 </div>
                 <div className="w-12 h-12 rounded bg-muted overflow-hidden shrink-0 border border-border">
-                  <img src={entry.image_url} className="w-full h-full object-cover" alt="" />
+                  <img src={entry.image_url ?? undefined} className="w-full h-full object-cover" alt="" />
                 </div>
                 <div>
                   <p className="font-bold text-lg whitespace-nowrap">{entry.name}</p>

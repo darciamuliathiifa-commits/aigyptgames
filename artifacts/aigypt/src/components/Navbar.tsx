@@ -6,7 +6,7 @@ import { Menu, X, ChevronLeft } from 'lucide-react';
 // Route poster challenge — dipakai buat nentuin kapan nav "Galeri/Skor/Misi"
 // ditampilin. Di Hub (menu pilihan game) menu ini nggak relevan karena user
 // belum masuk ke game manapun.
-const CHALLENGE_ROUTES = ['/challenge', '/join', '/submit', '/status', '/prompt', '/gallery', '/leaderboard', '/live'];
+const CHALLENGE_ROUTES = ['/challenge', '/join', '/submit', '/status', '/prompt', '/gallery', '/leaderboard', '/live', '/racik'];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);

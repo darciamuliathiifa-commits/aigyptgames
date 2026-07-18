@@ -133,7 +133,18 @@ export interface LeaderboardEntry {
   ig_handle: string;
   emoji: string;
   anomaly_text: string;
-  image_url: string;
+  /** @nullable */
+  image_url?: string | null;
+  /** @nullable */
+  track?: string | null;
+  /** @nullable */
+  content_text?: string | null;
+  /** @nullable */
+  content_url?: string | null;
+  /** @nullable */
+  tantangan_label?: string | null;
+  /** @nullable */
+  tantangan_emoji?: string | null;
   status: string;
   /** @nullable */
   winner_category?: string | null;
@@ -158,7 +169,18 @@ export interface GalleryEntry {
   ig_handle: string;
   emoji: string;
   anomaly_text: string;
-  image_url: string;
+  /** @nullable */
+  image_url?: string | null;
+  /** @nullable */
+  track?: string | null;
+  /** @nullable */
+  content_text?: string | null;
+  /** @nullable */
+  content_url?: string | null;
+  /** @nullable */
+  tantangan_label?: string | null;
+  /** @nullable */
+  tantangan_emoji?: string | null;
   /** @nullable */
   winner_category?: string | null;
   vote_count: number;
@@ -198,9 +220,16 @@ export interface AdminSubmission {
   entry_number?: number | null;
   anomaly_emoji?: string;
   anomaly_text?: string;
-  image_url: string;
   /** @nullable */
-  ig_post_url: string | null;
+  image_url?: string | null;
+  /** @nullable */
+  track?: string | null;
+  /** @nullable */
+  content_text?: string | null;
+  /** @nullable */
+  content_url?: string | null;
+  /** @nullable */
+  ig_post_url?: string | null;
   status: string;
   /** @nullable */
   winner_category?: string | null;

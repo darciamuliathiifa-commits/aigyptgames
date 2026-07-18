@@ -17,6 +17,7 @@ const Join = lazy(() => import('@/pages/Join'));
 const Prompt = lazy(() => import('@/pages/Prompt'));
 const Submit = lazy(() => import('@/pages/Submit'));
 const Status = lazy(() => import('@/pages/Status'));
+const Racik = lazy(() => import('@/pages/Racik'));
 const Live = lazy(() => import('@/pages/Live'));
 const Admin = lazy(() => import('@/pages/Admin'));
 
@@ -28,6 +29,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Hub} />
       <Route path="/challenge" component={Home} />
+      <Route path="/racik" component={Racik} />
       <Route path="/join" component={Join} />
       <Route path="/prompt" component={Prompt} />
       <Route path="/submit" component={Submit} />

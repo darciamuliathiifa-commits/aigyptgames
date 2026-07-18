@@ -49,11 +49,15 @@ function SubmissionLightbox({
         className="max-w-sm w-full rounded-2xl overflow-hidden bg-card border border-border shadow-[0_0_60px_rgba(124,58,237,0.4)] flex flex-col max-h-[90dvh]"
       >
         <div className="relative w-full overflow-hidden bg-muted shrink-0">
-          <img
-            src={entry.image_url}
-            alt={`Poster by ${entry.name}`}
-            className="w-full h-auto max-h-[65dvh] object-contain bg-black"
-          />
+          {(!(entry as any).track || (entry as any).track === 'image') && entry.image_url ? (
+            <img
+              src={entry.image_url}
+              alt={`Karya ${entry.name}`}
+              className="w-full h-auto max-h-[65dvh] object-contain bg-black"
+            />
+          ) : (
+            <div className="aspect-[4/5] max-h-[65dvh]"><CardMedia entry={entry} /></div>
+          )}
           {rank && (
             <div className={cn(
               "absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center font-display font-bold text-sm shadow-md",
@@ -120,6 +124,67 @@ function SubmissionLightbox({
   );
 }
 
+/** Renderer isi kartu berdasarkan jenis karya (track).
+ *  track null/"image" → gambar; "text" → kutipan; "music"/"code" → link. */
+function CardMedia({ entry }: { entry: GalleryEntry | LeaderboardEntry }) {
+  const track = (entry as any).track as string | null | undefined;
+  const contentText = (entry as any).content_text as string | null | undefined;
+  const contentUrl = (entry as any).content_url as string | null | undefined;
+
+  if ((!track || track === 'image') && entry.image_url) {
+    return (
+      <img
+        src={entry.image_url}
+        alt={`Karya ${entry.name}`}
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        loading="lazy"
+      />
+    );
+  }
+
+  if (track === 'text') {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-primary/15 via-card to-card p-5 flex flex-col">
+        <span className="text-2xl mb-2">✍️</span>
+        <p className="text-sm text-foreground/85 leading-relaxed italic overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 9, WebkitBoxOrient: 'vertical' }}>
+          "{contentText}"
+        </p>
+      </div>
+    );
+  }
+
+  if (track === 'music') {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-fuchsia-500/15 via-card to-card flex flex-col items-center justify-center gap-3 p-5">
+        <span className="text-5xl">🎵</span>
+        <span
+          onClick={(e) => { e.stopPropagation(); if (contentUrl) window.open(contentUrl, '_blank', 'noopener,noreferrer'); }}
+          className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground font-bold text-sm px-5 py-2.5 cursor-pointer hover:bg-primary/90 transition-colors"
+        >
+          ▶ Dengerin Lagunya
+        </span>
+      </div>
+    );
+  }
+
+  if (track === 'code') {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-emerald-500/10 via-card to-card flex flex-col items-center justify-center gap-3 p-5">
+        <span className="text-5xl">💻</span>
+        <span
+          onClick={(e) => { e.stopPropagation(); if (contentUrl) window.open(contentUrl, '_blank', 'noopener,noreferrer'); }}
+          className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground font-bold text-sm px-5 py-2.5 cursor-pointer hover:bg-primary/90 transition-colors"
+        >
+          🔗 Coba Mini App-nya
+        </span>
+      </div>
+    );
+  }
+
+  // fallback
+  return <div className="w-full h-full bg-muted" />;
+}
+
 export function SubmissionCard({ 
   entry, 
   rank, 
@@ -140,12 +205,7 @@ export function SubmissionCard({
         className="relative aspect-[4/5] w-full overflow-hidden bg-muted text-left cursor-pointer"
         aria-label={`Lihat poster ${entry.name} lebih besar`}
       >
-        <img 
-          src={entry.image_url} 
-          alt={`Poster by ${entry.name}`}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-        />
+        <CardMedia entry={entry} />
         
         {/* Overlay gradient for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>

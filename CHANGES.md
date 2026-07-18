@@ -68,6 +68,50 @@ Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
   (`?width=&quality=`) — worth dipakai biar gambar yang di-download HP
   otomatis lebih kecil daripada file asli.
 
+## 🧪 GAME BARU: Racik Prompt (18 Jul, batch 13)
+Game kedua AIGYPT — peserta MENYUSUN prompt dari balok pilihan, bukan
+copy-paste. Tujuan: beneran bikin karya pake AI DAN ngerti kenapa hasilnya
+bisa begitu. 4 jalur sekaligus:
+- 🖼️ **Gambar** (Gemini/ChatGPT) — submit upload gambar
+- ✍️ **Tulisan** (cerpen/puisi/thread) — submit paste teks
+- 🎵 **Musik** (Suno) — submit link lagu
+- 💻 **Mini App** (ChatGPT/Claude) — submit link hasil
+
+Alur: pilih jalur (atau "Tantang Aku 🎲" = jalur digacha, dapet badge) →
+gacha kartu tantangan wajib → susun balok per kategori (tiap balok ada
+tooltip edukasi "kenapa") → prompt terbentuk LIVE dwibahasa (Indonesia
+buat dipahami + Inggris buat di-copy) → jalankan di AI → submit → antrian
+verifikasi admin → galeri & vote → karya terverifikasi = akses AINA
+(pakai sistem prize yang sama).
+
+Yang dibangun:
+- `migration_v6.sql` — tabel `prompt_blocks` + **seed 60 balok** (4 jalur ×
+  5 kategori, termasuk kartu tantangan), kolom baru di submissions
+  (`track`, `content_text`, `content_url`, `block_ids`, `tantangan_block_id`),
+  view `leaderboard_public` di-upgrade, `image_url` jadi nullable.
+- Endpoint baru: `GET /racik/blocks`, `GET /racik/gacha?track=`,
+  `POST /racik/submissions` (validasi konten per jalur).
+- Halaman baru `/racik` (Meja Racik) — lazy-loaded, cuma 4.9 KB gzip.
+- Galeri & lightbox sekarang render per jenis karya: gambar tampil visual,
+  tulisan tampil kutipan, musik ada tombol "Dengerin Lagunya", mini app
+  ada tombol "Coba". Vote jalan sama untuk semua jenis.
+- Admin verifikasi bisa preview per jenis (teks kebaca langsung, musik/app
+  ada tombol buka link + pengingat "cek dulu sebelum verify").
+- Hub: kartu "Misteri Berikutnya" berubah jadi "Racik Prompt" LIVE.
+- Konten balok dikelola via SQL dulu (tab admin "Balok" bisa nyusul kalau
+  perlu — struktur endpoint-nya udah disiapkan mirip tab Anomali).
+
+**Drift schema yang ikut kebongkar**: kolom `ig_tag_confirmed` di-insert
+kode sejak lama tapi NGGAK PERNAH ada di file SQL manapun (kemungkinan
+ditambah manual ke DB live) — diamankan di migration_v6 biar fresh
+install juga jalan.
+
+**Catatan jujur**: alur lengkap (racik → submit → verifikasi → galeri →
+vote) sudah diverifikasi lewat typecheck + build + smoke test endpoint,
+tapi BELUM diuji end-to-end dengan database sungguhan (sandbox gue nggak
+punya koneksi Supabase). Setelah jalanin migration_v6 dan deploy, tolong
+tes sekali alur penuhnya — kalau ada yang nyangkut, kirim errornya.
+
 ## Redesign navbar floating + grid card Hub + scoped links (18 Jul, batch 12)
 - **Navbar sekarang floating** — sebelumnya nempel penuh dari tepi kiri
   ke kanan layar (edge-to-edge). Sekarang jadi kartu melayang dengan jarak

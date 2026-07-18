@@ -12,7 +12,18 @@ export interface GalleryEntry {
   ig_handle: string;
   emoji: string;
   anomaly_text: string;
-  image_url: string;
+  /** @nullable */
+  image_url?: string | null;
+  /** @nullable */
+  track?: string | null;
+  /** @nullable */
+  content_text?: string | null;
+  /** @nullable */
+  content_url?: string | null;
+  /** @nullable */
+  tantangan_label?: string | null;
+  /** @nullable */
+  tantangan_emoji?: string | null;
   /** @nullable */
   winner_category?: string | null;
   vote_count: number;

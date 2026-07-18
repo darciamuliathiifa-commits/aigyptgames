@@ -192,12 +192,37 @@ function TabVerifikasi() {
             </div>
           </div>
 
-          {/* Poster preview */}
+          {/* Preview karya — beda render per jenis (poster/racik) */}
           <div className="aspect-[4/5] bg-muted relative">
-            <img src={sub.image_url} className="w-full h-full object-contain" alt="Poster" />
-            <div className="absolute bottom-2 right-2 bg-black/70 px-3 py-1 rounded-lg text-white font-bold backdrop-blur-sm text-sm">
-              {sub.anomaly_emoji} {sub.anomaly_text}
-            </div>
+            {(!sub.track || sub.track === 'image') && sub.image_url ? (
+              <img src={sub.image_url} className="w-full h-full object-contain" alt="Karya" />
+            ) : sub.track === 'text' ? (
+              <div className="w-full h-full p-4 overflow-y-auto text-sm leading-relaxed italic text-foreground/85">
+                "{sub.content_text}"
+              </div>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-3 p-4">
+                <span className="text-5xl">{sub.track === 'music' ? '🎵' : '💻'}</span>
+                <a
+                  href={sub.content_url ?? undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground font-bold text-sm px-5 py-2.5"
+                >
+                  {sub.track === 'music' ? '▶ Buka di Suno' : '🔗 Buka Link Karya'}
+                </a>
+                <p className="text-[10px] text-muted-foreground text-center">Cek dulu isinya sebelum verify ya</p>
+              </div>
+            )}
+            {sub.track ? (
+              <div className="absolute bottom-2 right-2 bg-black/70 px-3 py-1 rounded-lg text-white font-bold backdrop-blur-sm text-sm">
+                🧪 Racik — {sub.track}
+              </div>
+            ) : (
+              <div className="absolute bottom-2 right-2 bg-black/70 px-3 py-1 rounded-lg text-white font-bold backdrop-blur-sm text-sm">
+                {sub.anomaly_emoji} {sub.anomaly_text}
+              </div>
+            )}
           </div>
 
           {/* Action buttons */}
@@ -318,7 +343,7 @@ function TabVoting() {
                     <td className="p-4 font-bold text-muted-foreground">{i + 1}</td>
                     <td className="p-4">
                       <div className="w-12 h-12 rounded overflow-hidden bg-muted">
-                        <img src={sub.image_url} className="w-full h-full object-cover" />
+                        <img src={sub.image_url ?? undefined} className="w-full h-full object-cover" />
                       </div>
                     </td>
                     <td className="p-4">

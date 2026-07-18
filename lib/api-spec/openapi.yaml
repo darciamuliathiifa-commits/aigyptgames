@@ -744,7 +744,7 @@ components:
 
     LeaderboardEntry:
       type: object
-      required: [submission_id, name, ig_handle, emoji, anomaly_text, image_url, status, vote_count, created_at]
+      required: [submission_id, name, ig_handle, emoji, anomaly_text, status, vote_count, created_at]
       properties:
         submission_id:
           type: string
@@ -757,7 +757,17 @@ components:
         anomaly_text:
           type: string
         image_url:
-          type: string
+          type: ["string", "null"]
+        track:
+          type: ["string", "null"]
+        content_text:
+          type: ["string", "null"]
+        content_url:
+          type: ["string", "null"]
+        tantangan_label:
+          type: ["string", "null"]
+        tantangan_emoji:
+          type: ["string", "null"]
         status:
           type: string
         winner_category:
@@ -790,7 +800,7 @@ components:
 
     GalleryEntry:
       type: object
-      required: [submission_id, name, ig_handle, emoji, anomaly_text, image_url, vote_count, created_at]
+      required: [submission_id, name, ig_handle, emoji, anomaly_text, vote_count, created_at]
       properties:
         submission_id:
           type: string
@@ -803,7 +813,17 @@ components:
         anomaly_text:
           type: string
         image_url:
-          type: string
+          type: ["string", "null"]
+        track:
+          type: ["string", "null"]
+        content_text:
+          type: ["string", "null"]
+        content_url:
+          type: ["string", "null"]
+        tantangan_label:
+          type: ["string", "null"]
+        tantangan_emoji:
+          type: ["string", "null"]
         winner_category:
           type: ["string", "null"]
         vote_count:
@@ -863,7 +883,7 @@ components:
 
     AdminSubmission:
       type: object
-      required: [id, participant_id, image_url, ig_post_url, status, created_at, participant_name, participant_ig]
+      required: [id, participant_id, status, created_at, participant_name, participant_ig]
       properties:
         id:
           type: string
@@ -882,7 +902,13 @@ components:
         anomaly_text:
           type: string
         image_url:
-          type: string
+          type: ["string", "null"]
+        track:
+          type: ["string", "null"]
+        content_text:
+          type: ["string", "null"]
+        content_url:
+          type: ["string", "null"]
         ig_post_url:
           type: ["string", "null"]
         status:

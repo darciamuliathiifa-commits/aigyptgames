@@ -32,11 +32,13 @@ const GAMES: GameDef[] = [
     prize: 'Semua yang kelar dapet akses AINA',
   },
   {
-    slug: 'game-2',
-    emoji: '🃏',
-    title: 'Misteri Berikutnya',
-    desc: 'Game kedua lagi diracik. Kartunya masih tertutup.',
-    status: 'soon',
+    slug: 'racik-prompt',
+    emoji: '🧪',
+    title: 'Racik Prompt',
+    desc: 'Susun prompt-mu sendiri dari balok — gambar, tulisan, musik, atau mini app. Pahami caranya, bukan cuma hasilnya.',
+    href: '/racik',
+    status: 'live',
+    prize: 'Karya terverifikasi = akses AINA',
   },
   {
     slug: 'game-3',
