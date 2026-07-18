@@ -66,7 +66,7 @@ export default function Hub() {
 
       <Navbar />
 
-      <main className="flex-1 relative z-10 w-full container max-w-md md:max-w-2xl mx-auto px-4 pt-24 pb-6 flex flex-col items-center">
+      <main className="flex-1 relative z-10 w-full container max-w-md md:max-w-5xl mx-auto px-4 pt-24 pb-6 flex flex-col items-center">
         {/* ── Header ── */}
         <div className="inline-flex items-center gap-1.5 bg-primary/10 border border-primary/30 rounded-full px-3 py-1.5 text-xs font-bold text-primary backdrop-blur-sm mb-5">
           🕹️ AIGYPT GAMES
@@ -88,14 +88,13 @@ export default function Hub() {
           Satu tenant, banyak cara buat seru-seruan bareng AI. Mulai dari sini.
         </p>
 
-        {/* ── Game cards ── */}
-        <div className="w-full flex flex-col gap-5">
+        {/* ── Game cards — berjejer 1 kolom di HP, 3 kolom sejajar di desktop ── */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
           {GAMES.map((game) =>
             game.status === 'live' ? (
-              <Link
+              <div
                 key={game.slug}
-                href={game.href!}
-                className="group relative block rounded-2xl border border-primary/40 bg-card/60 backdrop-blur-sm p-6 shadow-[0_0_30px_rgba(124,58,237,0.25)] hover:shadow-[0_0_50px_rgba(124,58,237,0.45)] hover:border-primary/70 hover:-translate-y-1 transition-all"
+                className="group relative flex flex-col rounded-2xl border border-primary/40 bg-card/60 backdrop-blur-sm p-6 shadow-[0_0_30px_rgba(124,58,237,0.25)] hover:shadow-[0_0_50px_rgba(124,58,237,0.45)] hover:border-primary/70 hover:-translate-y-1 transition-all"
               >
                 {/* LIVE badge */}
                 <div className="absolute -top-3 left-5 inline-flex items-center gap-1.5 bg-background border border-red-500/40 rounded-full px-3 py-1 text-[11px] font-bold text-red-400">
@@ -103,71 +102,66 @@ export default function Hub() {
                   LIVE SEKARANG
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 shrink-0 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                    {game.emoji}
-                  </div>
-                  <div className="min-w-0">
-                    <h2 className="font-display font-bold text-2xl leading-tight mb-1">{game.title}</h2>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{game.desc}</p>
-                  </div>
+                <div className="w-14 h-14 shrink-0 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+                  {game.emoji}
                 </div>
+                <h2 className="font-display font-bold text-2xl leading-tight mb-1.5">{game.title}</h2>
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">{game.desc}</p>
 
                 {/* Prize strip */}
                 {game.prize && (
-                  <div className="mt-4 flex items-center gap-2 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2 text-xs font-bold text-primary">
+                  <div className="flex items-center gap-2 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2 text-xs font-bold text-primary mb-4">
                     <span>🎁</span>
                     <span className="truncate">{game.prize}</span>
                     <img src="/LOGO_AINA.png" alt="AINA" className="h-3.5 object-contain ml-auto shrink-0" />
                   </div>
                 )}
 
-                {/* Footer row: stat + CTA */}
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <span className="text-xs text-muted-foreground font-medium">
+                <div className="mt-auto space-y-3">
+                  <span className="text-xs text-muted-foreground font-medium block">
                     {karyaCount > 0 ? `${karyaCount} karya udah masuk 🔥` : 'Jadi yang pertama main 👀'}
                   </span>
-                  <span className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground font-display font-bold text-base px-5 py-2.5 shadow-[0_0_20px_rgba(124,58,237,0.4)] group-hover:bg-primary/90 transition-colors">
+                  <Link
+                    href={game.href!}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground font-display font-bold text-base px-5 py-3 shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:bg-primary/90 transition-colors"
+                  >
                     Gas Main <span className="dice-wiggle inline-block">🎲</span>
-                  </span>
+                  </Link>
+
+                  {/* Link Galeri & Leaderboard — scoped ke game ini doang,
+                      karena belum tentu game lain punya galeri/leaderboard */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      href="/gallery"
+                      className="py-2 rounded-lg bg-secondary/80 text-secondary-foreground text-xs font-bold text-center border border-border hover:bg-secondary hover:border-primary/30 transition-all"
+                    >
+                      Galeri & Vote
+                    </Link>
+                    <Link
+                      href="/leaderboard"
+                      className="py-2 rounded-lg bg-secondary/80 text-secondary-foreground text-xs font-bold text-center border border-border hover:bg-secondary hover:border-primary/30 transition-all"
+                    >
+                      Leaderboard
+                    </Link>
+                  </div>
                 </div>
-              </Link>
+              </div>
             ) : (
               <div
                 key={game.slug}
-                className="relative rounded-2xl border border-dashed border-border bg-card/30 p-6 opacity-70"
+                className="relative flex flex-col rounded-2xl border border-dashed border-border bg-card/30 p-6 opacity-70"
               >
                 <div className="absolute -top-3 left-5 inline-flex items-center gap-1.5 bg-background border border-border rounded-full px-3 py-1 text-[11px] font-bold text-muted-foreground">
                   🔒 SEGERA HADIR
                 </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 shrink-0 rounded-xl bg-secondary/60 border border-border flex items-center justify-center text-3xl grayscale">
-                    {game.emoji}
-                  </div>
-                  <div className="min-w-0">
-                    <h2 className="font-display font-bold text-2xl leading-tight mb-1 text-muted-foreground">{game.title}</h2>
-                    <p className="text-muted-foreground/70 text-sm leading-relaxed">{game.desc}</p>
-                  </div>
+                <div className="w-14 h-14 shrink-0 rounded-xl bg-secondary/60 border border-border flex items-center justify-center text-3xl grayscale mb-4">
+                  {game.emoji}
                 </div>
+                <h2 className="font-display font-bold text-2xl leading-tight mb-1.5 text-muted-foreground">{game.title}</h2>
+                <p className="text-muted-foreground/70 text-sm leading-relaxed">{game.desc}</p>
               </div>
             ),
           )}
-        </div>
-
-        {/* ── Secondary links ── */}
-        <div className="grid grid-cols-2 gap-4 mt-10 w-full">
-          <Link
-            href="/gallery"
-            className="py-3 rounded-xl bg-secondary/80 text-secondary-foreground font-bold text-center border border-border hover:bg-secondary hover:border-primary/30 transition-all min-h-[48px] flex items-center justify-center"
-          >
-            Galeri & Vote
-          </Link>
-          <Link
-            href="/leaderboard"
-            className="py-3 rounded-xl bg-secondary/80 text-secondary-foreground font-bold text-center border border-border hover:bg-secondary hover:border-primary/30 transition-all min-h-[48px] flex items-center justify-center"
-          >
-            Leaderboard
-          </Link>
         </div>
 
         <Footer />

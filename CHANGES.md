@@ -68,6 +68,31 @@ Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
   (`?width=&quality=`) — worth dipakai biar gambar yang di-download HP
   otomatis lebih kecil daripada file asli.
 
+## Redesign navbar floating + grid card Hub + scoped links (18 Jul, batch 12)
+- **Navbar sekarang floating** — sebelumnya nempel penuh dari tepi kiri
+  ke kanan layar (edge-to-edge). Sekarang jadi kartu melayang dengan jarak
+  dari tepi (`px-3 pt-3` di HP, lebih lebar di desktop), rounded corner,
+  border, dan bayangan — selalu kelihatan sebagai "kartu", bukan cuma pas
+  di-scroll doang. Dropdown menu mobile juga ikut jadi kartu yang senada.
+- **Presisi logo diperbaiki** — icon AIGYPT dibesarin dikit (28px→32px)
+  biar proporsinya pas sama font judul baru (Unbounded, yang secara
+  visual lebih tebal/lebar dari font lama), dan container teksnya diganti
+  jadi flex-col yang lebih presisi buat vertical-center. **Catatan
+  jujur**: presisi pixel-perfect ini agak sulit gue pastiin 100% tanpa
+  liat langsung di browser lo — kalau masih kerasa kurang center, kasih
+  tau, gampang di-tweak lagi.
+- **Kartu pilihan game di Hub sekarang berjejer** — sebelumnya numpuk ke
+  bawah 1 kolom terus (`flex-col`), sekarang jadi grid: 1 kolom di HP,
+  3 kolom sejajar di desktop/tablet (`md:grid-cols-3`). Card juga dirombak
+  dari layout horizontal (ikon-kiri, teks-kanan) jadi vertical (ikon-atas,
+  cocok buat kolom sempit), dan tinggi antar-card disamain (`items-stretch`)
+  biar rapi pas berjejer.
+- **Link "Galeri & Vote" / "Leaderboard" dipindah** dari section terpisah
+  di bawah Hub (dulu berlaku seolah-olah buat semua game) ke DALAM card
+  "AI Poster Challenge" doang — soalnya bener kata bro, galeri/leaderboard
+  itu spesifik punya game Poster Challenge, game lain (fase 2 nanti)
+  belum tentu punya konsep yang sama.
+
 ## Perubahan tampilan & nada tulisan (18 Jul, batch 11)
 - **Gambar poster mengambang digeser turun** — sebelumnya nangkring di
   pojok atas (4-10% dari atas), nabrak visual sama baris navbar. Sekarang

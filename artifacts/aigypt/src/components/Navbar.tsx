@@ -13,7 +13,6 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [location] = useLocation();
 
-  const isHub = location === '/';
   const inChallenge = CHALLENGE_ROUTES.includes(location);
 
   useEffect(() => {
@@ -32,21 +31,23 @@ export function Navbar() {
 
   return (
     <>
-      <header
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent safe-top",
-          scrolled ? "bg-background/85 backdrop-blur-md border-border shadow-sm py-3" : "bg-transparent py-4"
-        )}
-      >
-        <div className="container max-w-md mx-auto px-4 md:max-w-4xl flex items-center justify-between">
+      <header className="fixed top-0 inset-x-0 z-50 px-3 pt-3 md:px-6 md:pt-4 safe-top">
+        <div
+          className={cn(
+            "container max-w-md md:max-w-4xl mx-auto rounded-2xl border transition-all duration-300 flex items-center justify-between px-4 py-2.5",
+            scrolled
+              ? "bg-background/90 backdrop-blur-md border-border shadow-lg shadow-black/20"
+              : "bg-background/70 backdrop-blur-md border-border/60 shadow-md shadow-black/10"
+          )}
+        >
           <Link href="/" className="flex items-center gap-2.5 group min-w-0">
             <img
               src="/favicon_AIGYPT.png"
               alt="AIGYPT"
-              className="w-7 h-7 object-contain shrink-0 group-hover:scale-110 transition-transform"
+              className="w-8 h-8 object-contain shrink-0 group-hover:scale-110 transition-transform"
             />
-            <div className="min-w-0 leading-none">
-              <span className="font-display font-bold text-xl text-primary tracking-tight block">AIGYPT</span>
+            <div className="min-w-0 flex flex-col justify-center">
+              <span className="font-display font-bold text-lg text-primary tracking-tight leading-none block">AIGYPT</span>
               {inChallenge && (
                 <span className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wide flex items-center gap-1 -mt-0.5">
                   <ChevronLeft className="w-2.5 h-2.5" />
@@ -110,8 +111,8 @@ export function Navbar() {
 
       {/* Mobile dropdown menu */}
       {menuOpen && inChallenge && (
-        <div className="fixed inset-x-0 top-[68px] z-40 md:hidden">
-          <div className="bg-background/95 backdrop-blur-md border-b border-border shadow-xl px-4 py-3 flex flex-col gap-1">
+        <div className="fixed inset-x-0 top-[64px] md:top-[72px] z-40 md:hidden px-3">
+          <div className="container max-w-md mx-auto bg-background/95 backdrop-blur-md border border-border rounded-2xl shadow-xl px-3 py-3 flex flex-col gap-1">
             <Link
               href="/gallery"
               className={cn(
