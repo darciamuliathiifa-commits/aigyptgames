@@ -68,6 +68,42 @@ Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
   (`?width=&quality=`) — worth dipakai biar gambar yang di-download HP
   otomatis lebih kecil daripada file asli.
 
+## Fitur baru (18 Jul, batch 7)
+- **Admin bisa hapus peserta (buat bersihin spam/duplikat)** — tab baru
+  di **Leads**, tiap baris peserta ada tombol hapus (ikon tempat sampah).
+  Klik → konfirmasi dulu (sebut nama) → kalau yakin, SEMUA data peserta itu
+  kehapus permanen: entry (max 3), submission/poster, vote yang dia kasih
+  ke poster lain, dan file gambar di storage. Kode hadiah yang sempat dia
+  klaim **dikembalikan ke pool** (bukan ikut kehapus), jadi masih bisa
+  diklaim peserta lain yang sah.
+  - Endpoint baru: `DELETE /api/admin/participants/:id`.
+  - Urutan hapus: votes → submissions → entries → unclaim prize_codes →
+    participant → file storage (best-effort, di paling akhir).
+
+- **Tab baru "Anomali" di admin panel** — biar nggak perlu buka Supabase
+  SQL Editor tiap mau nambah pilihan anomali, sekarang bisa dari UI:
+  - Tambah kartu baru (emoji + deskripsi)
+  - Toggle aktif/nonaktif per kartu — kartu nonaktif nggak bakal keundi ke
+    peserta baru, tapi nggak dihapus permanen (biar histori peserta lama
+    yang udah kepilih kartu itu nggak putus/orphan)
+  - Endpoint baru: `GET/POST /api/admin/anomaly-cards`,
+    `PATCH /api/admin/anomaly-cards/:id`
+
+- **Total pilihan anomali sekarang 27** (diminta minimal 15+) — 25 kartu
+  lama + 2 kartu baru (ular kobra, kalajengking mekanik). Lihat
+  `migration_v5.sql`.
+
+## Bug fix tersembunyi yang ikut kebongkar (18 Jul, batch 7)
+- **Seed kartu anomali punya `ON CONFLICT DO NOTHING` yang sebenernya nggak
+  pernah efektif** — tabel `anomaly_cards` cuma punya unique constraint di
+  `id` (yang selalu random tiap insert), jadi kalau seed-nya sempat
+  kejalanin lebih dari sekali di database lo, kartunya bisa dobel diam-diam
+  tanpa ketahuan (ganggu keadilan random-pick, walau nggak bikin app error).
+  `migration_v5.sql` bersihin duplikat yang mungkin udah kejadian (peserta
+  yang nempel ke kartu duplikat dipindah ke kartu yang dipertahankan,
+  bukan di-orphan), sekalian nambahin unique constraint yang bener biar
+  `ON CONFLICT` beneran jalan ke depannya.
+
 ## Fitur baru (18 Jul, batch 6)
 - **Admin bisa hapus poster/submission** — di tab **Verifikasi** (yang masih
   pending) dan tab **Voting & Juara** (yang udah verified/approved), sekarang
@@ -128,7 +164,9 @@ Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
   menjalar ke file lain tiap kali disave ulang.
 
 ## Checklist deploy
-1. Jalankan `supabase/migration_v4.sql` di Supabase SQL Editor.
-2. Set storage limit bucket `posters` (lihat atas).
-3. Pastikan env `ADMIN_SECRET` terisi di Vercel (dipakai signing token admin sekarang).
-4. Push → deploy. Cek `/api/healthz`, buka `/` (hub baru), `/challenge`, `/join`, `/admin`.
+1. Jalankan `supabase/migration_v4.sql` di Supabase SQL Editor (kalau kemarin belum).
+2. Jalankan `supabase/migration_v5.sql` di Supabase SQL Editor (baru — dedup +
+   top-up kartu anomali jadi 27 pilihan).
+3. Set storage limit bucket `posters` (lihat atas).
+4. Pastikan env `ADMIN_SECRET` terisi di Vercel (dipakai signing token admin sekarang).
+5. Push → deploy. Cek `/api/healthz`, buka `/` (hub baru), `/challenge`, `/join`, `/admin`.

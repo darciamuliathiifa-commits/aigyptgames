@@ -270,6 +270,189 @@ router.delete("/admin/submissions/:id", requireAdmin, async (req, res) => {
   res.json({ deleted: true, id });
 });
 
+// DELETE /admin/participants/:id — hapus peserta beserta SEMUA data terkait
+// (entries, submissions, votes, file poster di storage). Kode hadiah yang
+// sempat diklaim peserta ini DIKEMBALIKAN ke pool (bukan ikut kehapus),
+// biar kode itu bisa dipakai peserta lain.
+router.delete("/admin/participants/:id", requireAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  const { data: participant, error: findErr } = await supabaseAdmin
+    .from("participants")
+    .select("id, name")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (findErr) {
+    logger.error({ findErr }, "Failed to look up participant before delete");
+    res.status(500).json({ error: "Gagal cari peserta" });
+    return;
+  }
+
+  if (!participant) {
+    res.status(404).json({ error: "Peserta tidak ditemukan" });
+    return;
+  }
+
+  // 1. Ambil semua submission milik peserta ini (buat hapus file storage-nya)
+  const { data: submissions } = await supabaseAdmin
+    .from("submissions")
+    .select("id, image_url")
+    .eq("participant_id", id);
+
+  const submissionIds = (submissions ?? []).map((s) => s.id);
+
+  // 2. Hapus votes yang nempel ke submission-submission itu (no cascade di FK)
+  if (submissionIds.length > 0) {
+    const { error: voteDelErr } = await supabaseAdmin
+      .from("votes")
+      .delete()
+      .in("submission_id", submissionIds);
+
+    if (voteDelErr) {
+      logger.error({ voteDelErr }, "Failed to delete votes for participant");
+      res.status(500).json({ error: "Gagal hapus vote terkait peserta" });
+      return;
+    }
+  }
+
+  // 3. Hapus submissions
+  const { error: subDelErr } = await supabaseAdmin
+    .from("submissions")
+    .delete()
+    .eq("participant_id", id);
+
+  if (subDelErr) {
+    logger.error({ subDelErr }, "Failed to delete submissions for participant");
+    res.status(500).json({ error: "Gagal hapus submission peserta" });
+    return;
+  }
+
+  // 4. Hapus entries
+  const { error: entryDelErr } = await supabaseAdmin
+    .from("entries")
+    .delete()
+    .eq("participant_id", id);
+
+  if (entryDelErr) {
+    logger.error({ entryDelErr }, "Failed to delete entries for participant");
+    res.status(500).json({ error: "Gagal hapus entry peserta" });
+    return;
+  }
+
+  // 5. Kembalikan (unclaim) kode hadiah yang sempat diklaim peserta ini —
+  // kode tetap ada di pool, cuma dilepas biar bisa diklaim peserta lain.
+  const { error: prizeUnclaimErr } = await supabaseAdmin
+    .from("prize_codes")
+    .update({ claimed_by: null, claimed_at: null })
+    .eq("claimed_by", id);
+
+  if (prizeUnclaimErr) {
+    logger.error({ prizeUnclaimErr }, "Failed to unclaim prize codes for participant");
+    // Non-fatal — lanjut aja, prize code cuma nyangkut status klaim doang.
+  }
+
+  // 6. Hapus participant
+  const { error: partDelErr } = await supabaseAdmin
+    .from("participants")
+    .delete()
+    .eq("id", id);
+
+  if (partDelErr) {
+    logger.error({ partDelErr }, "Failed to delete participant");
+    res.status(500).json({ error: "Gagal hapus peserta" });
+    return;
+  }
+
+  // 7. Best-effort hapus file poster dari storage — jangan gagalkan request
+  // utama kalau ini error, data DB udah bersih duluan (yang paling penting).
+  const paths = (submissions ?? [])
+    .map((s) => {
+      const marker = "/storage/v1/object/public/posters/";
+      const idx = s.image_url?.indexOf(marker) ?? -1;
+      return idx !== -1 ? s.image_url!.slice(idx + marker.length) : null;
+    })
+    .filter((p): p is string => Boolean(p));
+
+  if (paths.length > 0) {
+    try {
+      await supabaseAdmin.storage.from("posters").remove(paths);
+    } catch (storageErr) {
+      logger.error({ storageErr }, "Failed to delete storage files for participant (non-fatal)");
+    }
+  }
+
+  res.json({ deleted: true, id, name: participant.name });
+});
+
+// GET /admin/anomaly-cards — list semua kartu anomali (aktif + nonaktif)
+router.get("/admin/anomaly-cards", requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from("anomaly_cards")
+    .select("id, emoji, text, active")
+    .order("emoji");
+
+  if (error) {
+    logger.error({ error }, "Failed to fetch anomaly cards");
+    res.status(500).json({ error: "Gagal ambil kartu anomali" });
+    return;
+  }
+
+  res.json(data ?? []);
+});
+
+// POST /admin/anomaly-cards — tambah kartu anomali baru
+router.post("/admin/anomaly-cards", requireAdmin, async (req, res) => {
+  const { emoji, text } = req.body as { emoji?: string; text?: string };
+
+  if (!emoji?.trim() || !text?.trim()) {
+    res.status(400).json({ error: "emoji dan text wajib diisi" });
+    return;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("anomaly_cards")
+    .insert({ emoji: emoji.trim(), text: text.trim(), active: true })
+    .select("id, emoji, text, active")
+    .single();
+
+  if (error) {
+    logger.error({ error }, "Failed to insert anomaly card");
+    res.status(500).json({ error: "Gagal tambah kartu anomali" });
+    return;
+  }
+
+  res.status(201).json(data);
+});
+
+// PATCH /admin/anomaly-cards/:id — toggle aktif/nonaktif (soft-delete, karena
+// kartu lama bisa udah nempel ke entries/participants lama — nggak boleh
+// dihapus permanen biar histori data mereka nggak putus)
+router.patch("/admin/anomaly-cards/:id", requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { active } = req.body as { active?: boolean };
+
+  if (active === undefined) {
+    res.status(400).json({ error: "active wajib diisi" });
+    return;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("anomaly_cards")
+    .update({ active })
+    .eq("id", id)
+    .select("id, emoji, text, active")
+    .single();
+
+  if (error) {
+    logger.error({ error }, "Failed to update anomaly card");
+    res.status(500).json({ error: "Gagal update kartu anomali" });
+    return;
+  }
+
+  res.json(data);
+});
+
 // GET /admin/participants
 router.get("/admin/participants", requireAdmin, async (_req, res) => {
   const { data: participants, error } = await supabaseAdmin

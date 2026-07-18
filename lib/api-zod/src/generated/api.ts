@@ -364,6 +364,67 @@ export const AdminListParticipantsResponse = zod.array(AdminListParticipantsResp
 
 
 /**
+ * @summary Delete a participant and all related data (entries, submissions, votes)
+ */
+export const AdminDeleteParticipantParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const AdminDeleteParticipantResponse = zod.object({
+  "deleted": zod.boolean(),
+  "id": zod.string(),
+  "name": zod.string()
+})
+
+
+/**
+ * @summary List all anomaly cards (active + inactive)
+ */
+export const AdminListAnomalyCardsResponseItem = zod.object({
+  "id": zod.string(),
+  "emoji": zod.string(),
+  "text": zod.string(),
+  "active": zod.boolean()
+})
+export const AdminListAnomalyCardsResponse = zod.array(AdminListAnomalyCardsResponseItem)
+
+
+/**
+ * @summary Add a new anomaly card
+ */
+export const AdminAddAnomalyCardBody = zod.object({
+  "emoji": zod.string(),
+  "text": zod.string()
+})
+
+export const AdminAddAnomalyCardResponse = zod.object({
+  "id": zod.string(),
+  "emoji": zod.string(),
+  "text": zod.string(),
+  "active": zod.boolean()
+})
+
+
+/**
+ * @summary Toggle an anomaly card's active status
+ */
+export const AdminToggleAnomalyCardParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const AdminToggleAnomalyCardBody = zod.object({
+  "active": zod.boolean()
+})
+
+export const AdminToggleAnomalyCardResponse = zod.object({
+  "id": zod.string(),
+  "emoji": zod.string(),
+  "text": zod.string(),
+  "active": zod.boolean()
+})
+
+
+/**
  * @summary List all prize codes with claim info
  */
 export const AdminListPrizesResponse = zod.object({

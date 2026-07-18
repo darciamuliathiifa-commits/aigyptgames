@@ -11,6 +11,10 @@ import {
   useAdminListPrizes,
   useAdminAddPrizes,
   useAdminListParticipants,
+  useAdminDeleteParticipant,
+  useAdminListAnomalyCards,
+  useAdminAddAnomalyCard,
+  useAdminToggleAnomalyCard,
   useAdminUpdateSettings,
   useGetSettings
 } from '@workspace/api-client-react';
@@ -89,12 +93,13 @@ function AdminDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="verifikasi" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-muted mb-8">
+          <TabsList className="grid w-full grid-cols-6 bg-muted mb-8">
             <TabsTrigger value="verifikasi">Verifikasi</TabsTrigger>
             <TabsTrigger value="voting">Voting & Juara</TabsTrigger>
             <TabsTrigger value="kode">Kode Hadiah</TabsTrigger>
             <TabsTrigger value="leads">Leads</TabsTrigger>
             <TabsTrigger value="contoh">Contoh Karya</TabsTrigger>
+            <TabsTrigger value="anomali">Anomali</TabsTrigger>
           </TabsList>
 
           <TabsContent value="verifikasi"><TabVerifikasi /></TabsContent>
@@ -102,6 +107,7 @@ function AdminDashboard() {
           <TabsContent value="kode"><TabKode /></TabsContent>
           <TabsContent value="leads"><TabLeads /></TabsContent>
           <TabsContent value="contoh"><TabContohKarya /></TabsContent>
+          <TabsContent value="anomali"><TabAnomali /></TabsContent>
         </Tabs>
       </div>
     </div>
@@ -641,10 +647,142 @@ function TabContohKarya() {
   );
 }
 
-// ─── TAB LEADS ───────────────────────────────────────────────────────────────
+// ─── TAB ANOMALI ─────────────────────────────────────────────────────────────
+
+function TabAnomali() {
+  const { data, isLoading } = useAdminListAnomalyCards();
+  const addMutation = useAdminAddAnomalyCard();
+  const toggleMutation = useAdminToggleAnomalyCard();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const [emoji, setEmoji] = useState('');
+  const [text, setText] = useState('');
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['/api/admin/anomaly-cards'] });
+
+  const handleAdd = () => {
+    if (!emoji.trim() || !text.trim()) return;
+    addMutation.mutate({ data: { emoji: emoji.trim(), text: text.trim() } }, {
+      onSuccess: () => {
+        toast({ title: "Kartu anomali ditambahkan" });
+        setEmoji('');
+        setText('');
+        invalidate();
+      },
+      onError: (err: any) => {
+        toast({ title: "Gagal tambah kartu", description: err?.message, variant: "destructive" });
+      }
+    });
+  };
+
+  const handleToggle = (id: string, active: boolean) => {
+    toggleMutation.mutate({ id, data: { active: !active } }, {
+      onSuccess: () => invalidate(),
+      onError: (err: any) => {
+        toast({ title: "Gagal update kartu", description: err?.message, variant: "destructive" });
+      }
+    });
+  };
+
+  const activeCount = data?.filter(c => c.active).length ?? 0;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="bg-card border border-border rounded-2xl p-6 h-fit space-y-4">
+        <h3 className="font-bold flex items-center gap-2"><Plus className="w-4 h-4" /> Tambah Kartu Anomali</h3>
+        <p className="text-xs text-muted-foreground">
+          Kartu yang aktif ({activeCount}) bakal diundi random ke peserta baru pas mereka daftar.
+          Kartu lama nggak bisa dihapus permanen (biar histori peserta lama nggak putus) —
+          tapi bisa dinonaktifkan biar nggak keundi lagi ke peserta baru.
+        </p>
+        <div className="space-y-2">
+          <label className="text-sm font-bold">Emoji</label>
+          <input
+            value={emoji}
+            onChange={e => setEmoji(e.target.value)}
+            placeholder="🐫"
+            maxLength={8}
+            className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-2xl text-center"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-bold">Deskripsi Anomali</label>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="Contoh: Kucing raksasa Mesir tidur di atap tenant"
+            rows={3}
+            className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-sm resize-none"
+          />
+        </div>
+        <button
+          onClick={handleAdd}
+          disabled={addMutation.isPending || !emoji.trim() || !text.trim()}
+          className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-lg disabled:opacity-50"
+        >
+          {addMutation.isPending ? <Loader2 className="animate-spin mx-auto" /> : 'Tambahkan'}
+        </button>
+      </div>
+
+      <div className="md:col-span-2">
+        {isLoading ? (
+          <Loader2 className="animate-spin mx-auto my-10" />
+        ) : !data || data.length === 0 ? (
+          <div className="border border-dashed border-border rounded-xl text-center py-20 text-muted-foreground">
+            Belum ada kartu anomali. Tambah di sebelah kiri.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {data.map(card => (
+              <div
+                key={card.id}
+                className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                  card.active ? 'bg-card border-border' : 'bg-card/50 border-border/30 opacity-50'
+                }`}
+              >
+                <span className="text-2xl shrink-0">{card.emoji}</span>
+                <p className="text-sm flex-1 min-w-0">{card.text}</p>
+                <button
+                  onClick={() => handleToggle(card.id, card.active)}
+                  disabled={toggleMutation.isPending}
+                  className="p-1.5 rounded bg-muted hover:bg-secondary transition-colors shrink-0 disabled:opacity-50"
+                  title={card.active ? 'Nonaktifkan (nggak diundi lagi)' : 'Aktifkan'}
+                  aria-label={card.active ? `Nonaktifkan kartu ${card.text}` : `Aktifkan kartu ${card.text}`}
+                >
+                  {card.active ? <ToggleRight className="w-5 h-5 text-primary" /> : <ToggleLeft className="w-5 h-5 text-muted-foreground" />}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function TabLeads() {
   const { data, isLoading } = useAdminListParticipants();
+  const deleteMutation = useAdminDeleteParticipant();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const handleDelete = (id: string, name: string) => {
+    if (!window.confirm(`Yakin mau hapus peserta "${name}"? Semua entry, poster, dan vote punya dia ikut kehapus permanen. Kode hadiah yang sempat dia klaim bakal dibalikin ke pool.`)) {
+      return;
+    }
+    deleteMutation.mutate({ id }, {
+      onSuccess: () => {
+        toast({ title: `Peserta "${name}" dihapus` });
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/participants'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/submissions'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/prizes'] });
+      },
+      onError: (err: any) => {
+        toast({ title: "Gagal hapus peserta", description: err?.message, variant: "destructive" });
+      }
+    });
+  };
 
   const handleExport = () => {
     if (!data) return;
@@ -688,7 +826,7 @@ function TabLeads() {
       </div>
 
       <div className="bg-card border border-border rounded-xl overflow-x-auto">
-        <table className="w-full text-left text-sm min-w-[700px]">
+        <table className="w-full text-left text-sm min-w-[780px]">
           <thead className="bg-muted text-muted-foreground border-b border-border">
             <tr>
               <th className="p-4">Nama</th>
@@ -698,6 +836,7 @@ function TabLeads() {
               <th className="p-4 text-center">Entry</th>
               <th className="p-4">Karya</th>
               <th className="p-4">Hadiah</th>
+              <th className="p-4 text-right">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -729,6 +868,17 @@ function TabLeads() {
                   {p.prize_claimed ? (
                     <span className="text-xs px-2 py-1 bg-green-500/20 text-green-500 rounded font-bold">{p.prize_tier?.toUpperCase()}</span>
                   ) : '-'}
+                </td>
+                <td className="p-4 text-right">
+                  <button
+                    onClick={() => handleDelete(p.id, p.name)}
+                    disabled={deleteMutation.isPending}
+                    className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50"
+                    title="Hapus peserta ini (spam/duplikat)"
+                    aria-label={`Hapus peserta ${p.name}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </td>
               </tr>
             ))}

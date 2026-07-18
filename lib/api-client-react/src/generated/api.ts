@@ -20,7 +20,11 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminAnomalyCard,
+  AdminAnomalyCardInput,
+  AdminAnomalyCardToggle,
   AdminAuthStatus,
+  AdminDeleteParticipant200,
   AdminDeleteSubmission200,
   AdminListSubmissionsParams,
   AdminLoginInput,
@@ -1490,6 +1494,297 @@ export function useAdminListParticipants<TData = Awaited<ReturnType<typeof admin
 
 
 
+
+export const getAdminDeleteParticipantUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/participants/${id}`
+}
+
+/**
+ * @summary Delete a participant and all related data (entries, submissions, votes)
+ */
+export const adminDeleteParticipant = async (id: string, options?: RequestInit): Promise<AdminDeleteParticipant200> => {
+
+  return customFetch<AdminDeleteParticipant200>(getAdminDeleteParticipantUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminDeleteParticipantMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDeleteParticipant>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminDeleteParticipant>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['adminDeleteParticipant'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminDeleteParticipant>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  adminDeleteParticipant(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminDeleteParticipantMutationResult = NonNullable<Awaited<ReturnType<typeof adminDeleteParticipant>>>
+
+    export type AdminDeleteParticipantMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a participant and all related data (entries, submissions, votes)
+ */
+export const useAdminDeleteParticipant = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDeleteParticipant>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminDeleteParticipant>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getAdminDeleteParticipantMutationOptions(options));
+    }
+
+export const getAdminListAnomalyCardsUrl = () => {
+
+
+
+
+  return `/api/admin/anomaly-cards`
+}
+
+/**
+ * @summary List all anomaly cards (active + inactive)
+ */
+export const adminListAnomalyCards = async ( options?: RequestInit): Promise<AdminAnomalyCard[]> => {
+
+  return customFetch<AdminAnomalyCard[]>(getAdminListAnomalyCardsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminListAnomalyCardsQueryKey = () => {
+    return [
+    `/api/admin/anomaly-cards`
+    ] as const;
+    }
+
+
+export const getAdminListAnomalyCardsQueryOptions = <TData = Awaited<ReturnType<typeof adminListAnomalyCards>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListAnomalyCards>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminListAnomalyCardsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListAnomalyCards>>> = ({ signal }) => adminListAnomalyCards({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminListAnomalyCards>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminListAnomalyCardsQueryResult = NonNullable<Awaited<ReturnType<typeof adminListAnomalyCards>>>
+export type AdminListAnomalyCardsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List all anomaly cards (active + inactive)
+ */
+
+export function useAdminListAnomalyCards<TData = Awaited<ReturnType<typeof adminListAnomalyCards>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListAnomalyCards>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminListAnomalyCardsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAdminAddAnomalyCardUrl = () => {
+
+
+
+
+  return `/api/admin/anomaly-cards`
+}
+
+/**
+ * @summary Add a new anomaly card
+ */
+export const adminAddAnomalyCard = async (adminAnomalyCardInput: AdminAnomalyCardInput, options?: RequestInit): Promise<AdminAnomalyCard> => {
+
+  return customFetch<AdminAnomalyCard>(getAdminAddAnomalyCardUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminAnomalyCardInput)
+  }
+);}
+
+
+
+
+
+export const getAdminAddAnomalyCardMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminAddAnomalyCard>>, TError,{data: BodyType<AdminAnomalyCardInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminAddAnomalyCard>>, TError,{data: BodyType<AdminAnomalyCardInput>}, TContext> => {
+
+const mutationKey = ['adminAddAnomalyCard'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminAddAnomalyCard>>, {data: BodyType<AdminAnomalyCardInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  adminAddAnomalyCard(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminAddAnomalyCardMutationResult = NonNullable<Awaited<ReturnType<typeof adminAddAnomalyCard>>>
+    export type AdminAddAnomalyCardMutationBody = BodyType<AdminAnomalyCardInput>
+    export type AdminAddAnomalyCardMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a new anomaly card
+ */
+export const useAdminAddAnomalyCard = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminAddAnomalyCard>>, TError,{data: BodyType<AdminAnomalyCardInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminAddAnomalyCard>>,
+        TError,
+        {data: BodyType<AdminAnomalyCardInput>},
+        TContext
+      > => {
+      return useMutation(getAdminAddAnomalyCardMutationOptions(options));
+    }
+
+export const getAdminToggleAnomalyCardUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/anomaly-cards/${id}`
+}
+
+/**
+ * @summary Toggle an anomaly card's active status
+ */
+export const adminToggleAnomalyCard = async (id: string,
+    adminAnomalyCardToggle: AdminAnomalyCardToggle, options?: RequestInit): Promise<AdminAnomalyCard> => {
+
+  return customFetch<AdminAnomalyCard>(getAdminToggleAnomalyCardUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminAnomalyCardToggle)
+  }
+);}
+
+
+
+
+
+export const getAdminToggleAnomalyCardMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminToggleAnomalyCard>>, TError,{id: string;data: BodyType<AdminAnomalyCardToggle>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminToggleAnomalyCard>>, TError,{id: string;data: BodyType<AdminAnomalyCardToggle>}, TContext> => {
+
+const mutationKey = ['adminToggleAnomalyCard'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminToggleAnomalyCard>>, {id: string;data: BodyType<AdminAnomalyCardToggle>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  adminToggleAnomalyCard(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminToggleAnomalyCardMutationResult = NonNullable<Awaited<ReturnType<typeof adminToggleAnomalyCard>>>
+    export type AdminToggleAnomalyCardMutationBody = BodyType<AdminAnomalyCardToggle>
+    export type AdminToggleAnomalyCardMutationError = ErrorType<void>
+
+    /**
+ * @summary Toggle an anomaly card's active status
+ */
+export const useAdminToggleAnomalyCard = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminToggleAnomalyCard>>, TError,{id: string;data: BodyType<AdminAnomalyCardToggle>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminToggleAnomalyCard>>,
+        TError,
+        {id: string;data: BodyType<AdminAnomalyCardToggle>},
+        TContext
+      > => {
+      return useMutation(getAdminToggleAnomalyCardMutationOptions(options));
+    }
 
 export const getAdminListPrizesUrl = () => {
 

@@ -58,6 +58,22 @@ export interface EntryResult {
   anomaly_card: AnomalyCard;
 }
 
+export interface AdminAnomalyCard {
+  id: string;
+  emoji: string;
+  text: string;
+  active: boolean;
+}
+
+export interface AdminAnomalyCardInput {
+  emoji: string;
+  text: string;
+}
+
+export interface AdminAnomalyCardToggle {
+  active: boolean;
+}
+
 export interface Participant {
   id: string;
   name: string;
@@ -259,5 +275,11 @@ status?: string;
 export type AdminDeleteSubmission200 = {
   deleted: boolean;
   id: string;
+};
+
+export type AdminDeleteParticipant200 = {
+  deleted: boolean;
+  id: string;
+  name: string;
 };
 

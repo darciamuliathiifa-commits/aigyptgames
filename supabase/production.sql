@@ -6,7 +6,7 @@
 
 create table if not exists anomaly_cards (
   id uuid primary key default gen_random_uuid(),
-  text text not null,
+  text text not null unique,
   emoji text not null,
   active boolean default true
 );
@@ -89,8 +89,10 @@ insert into anomaly_cards (emoji, text) values
   ('🦖', 'T-Rex pakai jaket AIGYPT jadi satpam'),
   ('🎈', 'Tenant terbang diangkat ribuan balon ungu'),
   ('🧊', 'Tenant membeku jadi es di tengah gurun'),
-  ('🌙', 'Bulan turun jadi lampu tenant')
-on conflict do nothing;
+  ('🌙', 'Bulan turun jadi lampu tenant'),
+  ('🐍', 'Ular kobra raksasa melilit tiang tenant, matanya laser ungu'),
+  ('🦂', 'Kalajengking mekanik jaga pintu masuk tenant')
+on conflict (text) do nothing;
 
 -- ──────────────────────────────────────────────
 -- STORAGE — create bucket

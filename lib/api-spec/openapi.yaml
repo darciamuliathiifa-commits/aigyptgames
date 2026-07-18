@@ -378,6 +378,100 @@ paths:
         "401":
           description: Unauthorized
 
+  /admin/participants/{id}:
+    delete:
+      operationId: adminDeleteParticipant
+      tags: [admin]
+      summary: Delete a participant and all related data (entries, submissions, votes)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted, id, name]
+                properties:
+                  deleted:
+                    type: boolean
+                  id:
+                    type: string
+                  name:
+                    type: string
+        "401":
+          description: Unauthorized
+        "404":
+          description: Participant not found
+
+  /admin/anomaly-cards:
+    get:
+      operationId: adminListAnomalyCards
+      tags: [admin]
+      summary: List all anomaly cards (active + inactive)
+      responses:
+        "200":
+          description: Anomaly cards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminAnomalyCard"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: adminAddAnomalyCard
+      tags: [admin]
+      summary: Add a new anomaly card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnomalyCardInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnomalyCard"
+        "401":
+          description: Unauthorized
+
+  /admin/anomaly-cards/{id}:
+    patch:
+      operationId: adminToggleAnomalyCard
+      tags: [admin]
+      summary: Toggle an anomaly card's active status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnomalyCardToggle"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnomalyCard"
+        "401":
+          description: Unauthorized
+
   /admin/prizes:
     get:
       operationId: adminListPrizes
@@ -526,6 +620,35 @@ components:
           type: string
         text:
           type: string
+
+    AdminAnomalyCard:
+      type: object
+      required: [id, emoji, text, active]
+      properties:
+        id:
+          type: string
+        emoji:
+          type: string
+        text:
+          type: string
+        active:
+          type: boolean
+
+    AdminAnomalyCardInput:
+      type: object
+      required: [emoji, text]
+      properties:
+        emoji:
+          type: string
+        text:
+          type: string
+
+    AdminAnomalyCardToggle:
+      type: object
+      required: [active]
+      properties:
+        active:
+          type: boolean
 
     Participant:
       type: object

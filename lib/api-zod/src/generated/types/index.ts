@@ -6,7 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminAnomalyCard';
+export * from './adminAnomalyCardInput';
+export * from './adminAnomalyCardToggle';
 export * from './adminAuthStatus';
+export * from './adminDeleteParticipant200';
 export * from './adminDeleteSubmission200';
 export * from './adminListSubmissionsParams';
 export * from './adminLoginInput';
