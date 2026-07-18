@@ -206,6 +206,70 @@ router.put("/admin/submissions/:id", requireAdmin, async (req, res) => {
   });
 });
 
+// DELETE /admin/submissions/:id — hapus submission (poster) beserta vote-nya.
+// Peserta yang postingannya dihapus jadi bisa submit ulang untuk entry yang
+// sama (entry-nya sendiri tetap ada, cuma submission-nya yang hilang).
+router.delete("/admin/submissions/:id", requireAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  const { data: existing, error: findErr } = await supabaseAdmin
+    .from("submissions")
+    .select("id, image_url")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (findErr) {
+    logger.error({ findErr }, "Failed to look up submission before delete");
+    res.status(500).json({ error: "Gagal cari submission" });
+    return;
+  }
+
+  if (!existing) {
+    res.status(404).json({ error: "Submission tidak ditemukan" });
+    return;
+  }
+
+  // Votes tidak punya ON DELETE CASCADE ke submissions, jadi hapus manual dulu
+  // (pola yang sama dipakai di routes/submissions.ts pas peserta resubmit).
+  const { error: voteDelErr } = await supabaseAdmin
+    .from("votes")
+    .delete()
+    .eq("submission_id", id);
+
+  if (voteDelErr) {
+    logger.error({ voteDelErr }, "Failed to delete votes before submission delete");
+    res.status(500).json({ error: "Gagal hapus vote terkait" });
+    return;
+  }
+
+  const { error: subDelErr } = await supabaseAdmin
+    .from("submissions")
+    .delete()
+    .eq("id", id);
+
+  if (subDelErr) {
+    logger.error({ subDelErr }, "Failed to delete submission");
+    res.status(500).json({ error: "Gagal hapus submission" });
+    return;
+  }
+
+  // Best-effort hapus file dari storage — kalau gagal (mis. URL dari sumber
+  // lain / sudah kehapus duluan) jangan gagalkan seluruh request, DB udah
+  // bersih dan itu yang paling penting.
+  try {
+    const marker = "/storage/v1/object/public/posters/";
+    const idx = existing.image_url?.indexOf(marker) ?? -1;
+    if (idx !== -1) {
+      const path = existing.image_url!.slice(idx + marker.length);
+      await supabaseAdmin.storage.from("posters").remove([path]);
+    }
+  } catch (storageErr) {
+    logger.error({ storageErr }, "Failed to delete storage file (non-fatal)");
+  }
+
+  res.json({ deleted: true, id });
+});
+
 // GET /admin/participants
 router.get("/admin/participants", requireAdmin, async (_req, res) => {
   const { data: participants, error } = await supabaseAdmin

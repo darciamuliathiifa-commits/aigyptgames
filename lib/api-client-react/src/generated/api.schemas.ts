@@ -256,3 +256,8 @@ export type AdminListSubmissionsParams = {
 status?: string;
 };
 
+export type AdminDeleteSubmission200 = {
+  deleted: boolean;
+  id: string;
+};
+

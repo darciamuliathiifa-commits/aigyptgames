@@ -7,6 +7,7 @@ import {
   useAdminLogin,
   useAdminListSubmissions,
   useAdminUpdateSubmission,
+  useAdminDeleteSubmission,
   useAdminListPrizes,
   useAdminAddPrizes,
   useAdminListParticipants,
@@ -110,6 +111,7 @@ function AdminDashboard() {
 function TabVerifikasi() {
   const { data: pending, isLoading } = useAdminListSubmissions({ status: 'pending' });
   const updateMutation = useAdminUpdateSubmission();
+  const deleteMutation = useAdminDeleteSubmission();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -118,6 +120,21 @@ function TabVerifikasi() {
       onSuccess: () => {
         toast({ title: `Berhasil di-${status}` });
         setTimeout(() => window.location.reload(), 400);
+      }
+    });
+  };
+
+  const handleDelete = (id: string, participantName: string) => {
+    if (!window.confirm(`Yakin mau hapus poster ${participantName}? Vote-nya ikut kehapus dan nggak bisa dibalikin.`)) {
+      return;
+    }
+    deleteMutation.mutate({ id }, {
+      onSuccess: () => {
+        toast({ title: "Poster dihapus" });
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/submissions'] });
+      },
+      onError: (err: any) => {
+        toast({ title: "Gagal hapus", description: err?.message, variant: "destructive" });
       }
     });
   };
@@ -149,14 +166,24 @@ function TabVerifikasi() {
                 <p className="text-xs text-muted-foreground/70 truncate">{sub.participant_email}</p>
               )}
             </div>
-            <a
-              href={sub.ig_post_url ?? undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 bg-secondary rounded-lg hover:bg-secondary/80 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
-            >
-              <ExternalLink className="w-5 h-5" />
-            </a>
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={sub.ig_post_url ?? undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2.5 bg-secondary rounded-lg hover:bg-secondary/80 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
+                <ExternalLink className="w-5 h-5" />
+              </a>
+              <button
+                onClick={() => handleDelete(sub.id, sub.participant_name)}
+                disabled={deleteMutation.isPending}
+                className="p-2.5 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
+                aria-label="Hapus poster"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Poster preview */}
@@ -173,13 +200,13 @@ function TabVerifikasi() {
               onClick={() => handleVerify(sub.id, 'verified')}
               className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 shadow-[0_0_15px_rgba(124,58,237,0.3)] min-h-[52px]"
             >
-              âœ“ Verify
+              ✓ Verify
             </button>
             <button
               onClick={() => handleVerify(sub.id, 'rejected')}
               className="w-full py-3.5 rounded-xl border-2 border-destructive text-destructive font-bold text-base hover:bg-destructive/10 min-h-[52px]"
             >
-              âœ— Tolak
+              ✗ Tolak
             </button>
           </div>
         </div>
@@ -193,6 +220,7 @@ function TabVoting() {
   const updateSettings = useAdminUpdateSettings();
   const { data: verified, isLoading } = useAdminListSubmissions({ status: 'verified' });
   const updateSub = useAdminUpdateSubmission();
+  const deleteMutation = useAdminDeleteSubmission();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -219,6 +247,21 @@ function TabVoting() {
   const setWinner = (id: string, category: string | null) => {
     updateSub.mutate({ id, data: { winner_category: category } }, {
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/admin/submissions'] })
+    });
+  };
+
+  const handleDelete = (id: string, participantName: string) => {
+    if (!window.confirm(`Yakin mau hapus poster ${participantName}? Ini karya yang udah di-approve — vote-nya ikut kehapus dan nggak bisa dibalikin.`)) {
+      return;
+    }
+    deleteMutation.mutate({ id }, {
+      onSuccess: () => {
+        toast({ title: "Poster dihapus" });
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/submissions'] });
+      },
+      onError: (err: any) => {
+        toast({ title: "Gagal hapus", description: err?.message, variant: "destructive" });
+      }
     });
   };
 
@@ -260,6 +303,7 @@ function TabVoting() {
                   <th className="p-4">Peserta</th>
                   <th className="p-4 text-right">Votes</th>
                   <th className="p-4">Pemenang</th>
+                  <th className="p-4 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -288,6 +332,16 @@ function TabVoting() {
                         <option value="Paling Absurd">🏆 Paling Absurd</option>
                         <option value="Paling Niat">🏆 Paling Niat</option>
                       </select>
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => handleDelete(sub.id, sub.participant_name)}
+                        disabled={deleteMutation.isPending}
+                        className="p-2.5 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 inline-flex items-center justify-center disabled:opacity-50"
+                        aria-label="Hapus poster"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -403,7 +457,7 @@ function TabKode() {
   );
 }
 
-// â”€â”€â”€ TAB CONTOH KARYA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── TAB CONTOH KARYA ────────────────────────────────────────────────────────
 
 interface ExamplePoster {
   id: string;
@@ -587,7 +641,7 @@ function TabContohKarya() {
   );
 }
 
-// â”€â”€â”€ TAB LEADS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── TAB LEADS ───────────────────────────────────────────────────────────────
 
 function TabLeads() {
   const { data, isLoading } = useAdminListParticipants();
@@ -655,7 +709,7 @@ function TabLeads() {
                   <a href={`https://instagram.com/${p.ig_handle.replace('@', '')}`} target="_blank" className="text-primary hover:underline">{p.ig_handle}</a>
                 </td>
                 <td className="p-4 text-center">
-                  {p.wants_class_info ? <span className="text-green-500 font-bold">âœ“</span> : <span className="text-muted-foreground">-</span>}
+                  {p.wants_class_info ? <span className="text-green-500 font-bold">✓</span> : <span className="text-muted-foreground">-</span>}
                 </td>
                 <td className="p-4 text-center">
                   <span className="font-bold text-primary">{p.entry_count ?? 0}</span>

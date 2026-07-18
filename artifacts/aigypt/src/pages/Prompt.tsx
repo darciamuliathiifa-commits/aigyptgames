@@ -21,7 +21,7 @@ export default function Prompt() {
     query: {
       enabled: !!participantId,
       queryKey: ['participant', participantId!],
-      // 404 = ID di localStorage sudah tidak ada di database â†’ jangan retry
+      // 404 = ID di localStorage sudah tidak ada di database → jangan retry
       retry: (failureCount, err) => (err as any)?.status !== 404 && failureCount < 2,
     }
   });
@@ -31,7 +31,7 @@ export default function Prompt() {
   }, [participantId, setLocation]);
 
   // ID peserta di localStorage sudah tidak ada di database (mis. DB direset /
-  // ganti project Supabase) â†’ bersihkan sesi lama dan arahkan ke /join,
+  // ganti project Supabase) → bersihkan sesi lama dan arahkan ke /join,
   // jangan nge-hang di "Loading..." selamanya.
   // Guard: jangan redirect kalau query lagi fetching ulang (bisa ada cached
   // error dari sesi sebelumnya yang belum sempat di-refresh).
@@ -170,7 +170,7 @@ Kualitas: ultra detail, komposisi poster profesional, aspect ratio 4:5.`;
             onClick={() => setLocation('/submit')}
             className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-lg shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:bg-primary/90 transition-all"
           >
-            Udah Post di IG! Lanjut â†’
+            Udah Post di IG! Lanjut →
           </button>
         </div>
 

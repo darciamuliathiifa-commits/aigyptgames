@@ -7,6 +7,7 @@
  */
 
 export * from './adminAuthStatus';
+export * from './adminDeleteSubmission200';
 export * from './adminListSubmissionsParams';
 export * from './adminLoginInput';
 export * from './adminParticipant';

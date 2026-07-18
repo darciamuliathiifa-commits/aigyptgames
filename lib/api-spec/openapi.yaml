@@ -333,6 +333,34 @@ paths:
         "401":
           description: Unauthorized
 
+    delete:
+      operationId: adminDeleteSubmission
+      tags: [admin]
+      summary: Delete a submission (poster) and its votes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted, id]
+                properties:
+                  deleted:
+                    type: boolean
+                  id:
+                    type: string
+        "401":
+          description: Unauthorized
+        "404":
+          description: Submission not found
+
   /admin/participants:
     get:
       operationId: adminListParticipants

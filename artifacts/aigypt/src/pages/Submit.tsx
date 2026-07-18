@@ -35,12 +35,12 @@ export default function Submit() {
     query: {
       enabled: !!participantId && !activeEntryId,
       queryKey: ['participant-submit', participantId!],
-      // 404 = ID di localStorage sudah tidak ada di database â†’ jangan retry
+      // 404 = ID di localStorage sudah tidak ada di database → jangan retry
       retry: (failureCount, err) => (err as any)?.status !== 404 && failureCount < 2,
     }
   });
 
-  // ID peserta di localStorage sudah tidak ada di database â†’ bersihkan sesi
+  // ID peserta di localStorage sudah tidak ada di database → bersihkan sesi
   // lama dan arahkan ke /join.
   // Guard: jangan redirect kalau query lagi fetching ulang (cached error dari
   // sesi sebelumnya bisa muncul sebelum request baru selesai).

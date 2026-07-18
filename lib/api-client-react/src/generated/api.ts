@@ -21,6 +21,7 @@ import type {
 
 import type {
   AdminAuthStatus,
+  AdminDeleteSubmission200,
   AdminListSubmissionsParams,
   AdminLoginInput,
   AdminParticipant,
@@ -1340,6 +1341,77 @@ export const useAdminUpdateSubmission = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getAdminUpdateSubmissionMutationOptions(options));
+    }
+
+export const getAdminDeleteSubmissionUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/submissions/${id}`
+}
+
+/**
+ * @summary Delete a submission (poster) and its votes
+ */
+export const adminDeleteSubmission = async (id: string, options?: RequestInit): Promise<AdminDeleteSubmission200> => {
+
+  return customFetch<AdminDeleteSubmission200>(getAdminDeleteSubmissionUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminDeleteSubmissionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDeleteSubmission>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminDeleteSubmission>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['adminDeleteSubmission'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminDeleteSubmission>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  adminDeleteSubmission(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminDeleteSubmissionMutationResult = NonNullable<Awaited<ReturnType<typeof adminDeleteSubmission>>>
+
+    export type AdminDeleteSubmissionMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a submission (poster) and its votes
+ */
+export const useAdminDeleteSubmission = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDeleteSubmission>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminDeleteSubmission>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getAdminDeleteSubmissionMutationOptions(options));
     }
 
 export const getAdminListParticipantsUrl = () => {

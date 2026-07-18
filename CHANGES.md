@@ -68,6 +68,31 @@ Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
   (`?width=&quality=`) — worth dipakai biar gambar yang di-download HP
   otomatis lebih kecil daripada file asli.
 
+## Fitur baru (18 Jul, batch 6)
+- **Admin bisa hapus poster/submission** — di tab **Verifikasi** (yang masih
+  pending) dan tab **Voting & Juara** (yang udah verified/approved), sekarang
+  ada tombol hapus (ikon tempat sampah, warna merah). Klik → muncul konfirmasi
+  dulu (nyebut nama pesertanya) → kalau yakin, submission + vote-nya kehapus
+  dari database, dan file poster-nya juga dihapus dari Supabase Storage
+  (best-effort — kalau file storage-nya gagal kehapus karena sebab lain,
+  data DB tetap bersih, nggak nge-block).
+  - Endpoint baru: `DELETE /api/admin/submissions/:id` (butuh admin login).
+  - Peserta yang postingannya dihapus **entry-nya tetap ada** — mereka bisa
+    submit ulang poster baru untuk entry yang sama.
+  - Vote dihapus manual dulu sebelum submission (DB nggak punya
+    `ON DELETE CASCADE` di FK `votes.submission_id`), pola yang sama kayak
+    dipakai pas peserta resubmit poster.
+- **Belum ditambahin** (kalau perlu, bilang aja): hapus participant secara
+  penuh (lebih riskan — nyangkut entries, submissions, prize_codes sekaligus),
+  bulk-delete banyak submission sekaligus, tombol "reject → delete" gabungan.
+
+## Encoding fix batch 2 (18 Jul, batch 6)
+- Scan sebelumnya (batch 3) cuma nyari pola `â€` — ketinggalan pola `â`
+  polos yang ternyata masih ada di **`Admin.tsx`** (`✓`/`✗`/dash panah, jadi
+  `âœ“`/`âœ—`/`â”€`), **`Submit.tsx`**, dan **`Prompt.tsx`** (`→` jadi `â†’`).
+  Sekarang sudah di-scan ulang pakai deteksi lebih luas dan **bersih total**
+  di seluruh `artifacts/` — sudah diverifikasi otomatis, bukan cek manual.
+
 ## Fitur baru (18 Jul, batch 5)
 - **Popup lightbox buat lihat poster full-size** — sekarang berlaku di
   `SubmissionCard`, jadi otomatis kepakai di **Galeri** dan **Leaderboard**

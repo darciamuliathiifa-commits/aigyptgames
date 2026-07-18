@@ -331,6 +331,19 @@ export const AdminUpdateSubmissionResponse = zod.object({
 
 
 /**
+ * @summary Delete a submission (poster) and its votes
+ */
+export const AdminDeleteSubmissionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const AdminDeleteSubmissionResponse = zod.object({
+  "deleted": zod.boolean(),
+  "id": zod.string()
+})
+
+
+/**
  * @summary List all participants with full data (admin, for Leads tab + CSV export)
  */
 export const AdminListParticipantsResponseItem = zod.object({
