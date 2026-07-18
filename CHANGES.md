@@ -68,6 +68,25 @@ Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
   (`?width=&quality=`) — worth dipakai biar gambar yang di-download HP
   otomatis lebih kecil daripada file asli.
 
+## Redesign navbar (18 Jul, batch 10)
+- **Bug yang ketemu**: navbar SELALU nampilin menu "Galeri / Skor / Misi",
+  bahkan pas lagi di halaman **Hub** (menu pilihan game) — padahal di situ
+  user belum masuk ke game manapun. Menu itu nggak relevan di sana dan
+  bikin bingung ("Misi" apaan kalau belum pilih game?).
+- **Fix**: navbar sekarang sadar konteks halaman:
+  - Di **Hub** (`/`) → cuma logo, bersih, nggak ada menu game.
+  - Di dalam **Poster Challenge** (`/challenge`, `/join`, `/submit`,
+    `/status`, `/prompt`, `/gallery`, `/leaderboard`) → menu Galeri/Skor/Misi
+    tampil seperti biasa.
+  - Logo sekarang nampilin label kecil "‹ Poster Challenge" di bawah teks
+    "AIGYPT" pas lagi di dalam game itu — kasih konteks "lagi ada di game
+    mana" sekaligus jadi hint kalau klik logo balik ke menu semua game.
+- **Active-state indicator** — link "Galeri"/"Skor" yang lagi aktif sekarang
+  kelihatan jelas (warna primary + garis bawah tipis), sebelumnya semua
+  link keliatan sama terus nggak ada tanda lagi di halaman mana.
+- Menu dropdown mobile juga dapet active-state yang sama, plus tambahan
+  link "Semua Game" di paling bawah buat balik ke Hub.
+
 ## Perubahan tampilan (18 Jul, batch 9)
 - **Font judul (headline) sekarang Plus Jakarta Sans** — sebelumnya semua
   `<h1>`-`<h6>` di seluruh situs pakai Space Grotesk, teks biasa pakai
