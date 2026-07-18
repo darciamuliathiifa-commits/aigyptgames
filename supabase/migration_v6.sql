@@ -48,10 +48,18 @@ alter table submissions alter column image_url drop not null;
 
 -- ──────────────────────────────────────────────
 -- 3. Upgrade view leaderboard_public: bawa kolom racik
+--    CATATAN: view di DB live ternyata punya kolom entry_id (ditambah
+--    langsung ke DB, nggak lewat file SQL repo — drift). CREATE OR REPLACE
+--    nggak bisa mengubah susunan kolom view, jadi harus DROP dulu.
+--    entry_id ikut dipertahankan di definisi baru biar konsumen manapun
+--    yang mungkin memakainya tetap jalan.
 -- ──────────────────────────────────────────────
-create or replace view leaderboard_public as
+drop view if exists leaderboard_public;
+
+create view leaderboard_public as
   select
     s.id as submission_id,
+    s.entry_id,
     p.name,
     p.ig_handle,
     ac.emoji,
