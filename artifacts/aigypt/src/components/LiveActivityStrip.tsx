@@ -19,8 +19,8 @@ function firstName(name: string) {
 
 export function LiveActivityStrip() {
   const noMotion = usePrefersReducedMotion();
-  const { data: recentJoins } = useGetRecentJoins({ query: { refetchInterval: 30_000 } });
-  const { data: leaderboard } = useGetLeaderboard({ query: { refetchInterval: 30_000 } });
+  const { data: recentJoins } = useGetRecentJoins({ query: { refetchInterval: 30_000 } as never });
+  const { data: leaderboard } = useGetLeaderboard({ query: { refetchInterval: 30_000 } as never });
 
   const messages = useMemo<string[]>(() => {
     const count = leaderboard?.length ?? 0;

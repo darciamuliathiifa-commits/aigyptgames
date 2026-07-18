@@ -1,10 +1,10 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { supabaseAdmin } from "../lib/supabase";
 import { logger } from "../lib/logger";
 
 const router = Router();
 
-// POST /submissions â€” create or replace submission for a specific entry
+// POST /submissions — create or replace submission for a specific entry
 router.post("/submissions", async (req, res) => {
   const { participant_id, entry_id, image_url, ig_tag_confirmed } = req.body as {
     participant_id?: string;

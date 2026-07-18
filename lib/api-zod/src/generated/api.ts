@@ -21,11 +21,14 @@ export const HealthCheckResponse = zod.object({
  */
 
 
+export const createParticipantBodyEmailMin = 3;
+
 
 
 export const CreateParticipantBody = zod.object({
   "name": zod.string().min(1),
   "ig_handle": zod.string().min(1),
+  "email": zod.string().min(createParticipantBodyEmailMin),
   "wants_class_info": zod.boolean().optional()
 })
 
@@ -33,12 +36,14 @@ export const CreateParticipantResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "ig_handle": zod.string(),
+  "email": zod.string().optional(),
   "wants_class_info": zod.boolean().optional(),
   "anomaly_card": zod.object({
   "id": zod.string(),
   "emoji": zod.string(),
   "text": zod.string()
 }).optional(),
+  "active_entry_id": zod.string().optional(),
   "created_at": zod.string()
 })
 
@@ -61,6 +66,26 @@ export const GetParticipantResponse = zod.object({
   "text": zod.string()
 }).optional(),
   "created_at": zod.string(),
+  "entries": zod.array(zod.object({
+  "id": zod.string(),
+  "entry_number": zod.number(),
+  "anomaly_card": zod.object({
+  "id": zod.string(),
+  "emoji": zod.string(),
+  "text": zod.string()
+}).optional(),
+  "submission": zod.object({
+  "id": zod.string(),
+  "entry_id": zod.string().optional(),
+  "image_url": zod.string(),
+  "ig_post_url": zod.string().nullish(),
+  "status": zod.string(),
+  "winner_category": zod.string().nullish(),
+  "vote_count": zod.number().optional(),
+  "created_at": zod.string()
+}).optional(),
+  "created_at": zod.string()
+})).optional(),
   "submission": zod.object({
   "id": zod.string(),
   "participant_id": zod.string(),
@@ -86,8 +111,10 @@ export const GetParticipantResponse = zod.object({
  */
 export const CreateSubmissionBody = zod.object({
   "participant_id": zod.string(),
+  "entry_id": zod.string(),
   "image_url": zod.string(),
-  "ig_post_url": zod.string()
+  "ig_post_url": zod.string().nullish(),
+  "ig_tag_confirmed": zod.boolean()
 })
 
 export const CreateSubmissionResponse = zod.object({
@@ -259,10 +286,12 @@ export const AdminListSubmissionsResponseItem = zod.object({
   "participant_id": zod.string(),
   "participant_name": zod.string(),
   "participant_ig": zod.string(),
+  "participant_email": zod.string().optional(),
+  "entry_number": zod.number().nullish(),
   "anomaly_emoji": zod.string().optional(),
   "anomaly_text": zod.string().optional(),
   "image_url": zod.string(),
-  "ig_post_url": zod.string(),
+  "ig_post_url": zod.string().nullable(),
   "status": zod.string(),
   "winner_category": zod.string().nullish(),
   "vote_count": zod.number().optional(),
@@ -288,10 +317,12 @@ export const AdminUpdateSubmissionResponse = zod.object({
   "participant_id": zod.string(),
   "participant_name": zod.string(),
   "participant_ig": zod.string(),
+  "participant_email": zod.string().optional(),
+  "entry_number": zod.number().nullish(),
   "anomaly_emoji": zod.string().optional(),
   "anomaly_text": zod.string().optional(),
   "image_url": zod.string(),
-  "ig_post_url": zod.string(),
+  "ig_post_url": zod.string().nullable(),
   "status": zod.string(),
   "winner_category": zod.string().nullish(),
   "vote_count": zod.number().optional(),
@@ -306,6 +337,8 @@ export const AdminListParticipantsResponseItem = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "ig_handle": zod.string(),
+  "email": zod.string().optional(),
+  "entry_count": zod.number().optional(),
   "wants_class_info": zod.boolean(),
   "anomaly_emoji": zod.string().optional(),
   "anomaly_text": zod.string().optional(),

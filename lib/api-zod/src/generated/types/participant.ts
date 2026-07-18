@@ -11,7 +11,9 @@ export interface Participant {
   id: string;
   name: string;
   ig_handle: string;
+  email?: string;
   wants_class_info?: boolean;
   anomaly_card?: AnomalyCard;
+  active_entry_id?: string;
   created_at: string;
 }

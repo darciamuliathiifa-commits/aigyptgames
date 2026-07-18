@@ -416,7 +416,7 @@ components:
 
     ParticipantInput:
       type: object
-      required: [name, ig_handle]
+      required: [name, ig_handle, email]
       properties:
         name:
           type: string
@@ -424,8 +424,69 @@ components:
         ig_handle:
           type: string
           minLength: 1
+        email:
+          type: string
+          minLength: 3
         wants_class_info:
           type: boolean
+
+    Entry:
+      type: object
+      required: [id, entry_number, created_at]
+      properties:
+        id:
+          type: string
+        entry_number:
+          type: integer
+        anomaly_card:
+          $ref: "#/components/schemas/AnomalyCard"
+        submission:
+          $ref: "#/components/schemas/EntrySubmission"
+        created_at:
+          type: string
+
+    EntrySubmission:
+      type: object
+      required: [id, image_url, status, created_at]
+      properties:
+        id:
+          type: string
+        entry_id:
+          type: string
+        image_url:
+          type: string
+        ig_post_url:
+          type: ["string", "null"]
+        status:
+          type: string
+        winner_category:
+          type: ["string", "null"]
+        vote_count:
+          type: integer
+        created_at:
+          type: string
+
+    EntryInput:
+      type: object
+      required: [participant_id]
+      properties:
+        participant_id:
+          type: string
+
+    EntryResult:
+      type: object
+      required: [id, entry_number, participant_id, created_at, anomaly_card]
+      properties:
+        id:
+          type: string
+        entry_number:
+          type: integer
+        participant_id:
+          type: string
+        created_at:
+          type: string
+        anomaly_card:
+          $ref: "#/components/schemas/AnomalyCard"
 
     AnomalyCard:
       type: object
@@ -448,10 +509,14 @@ components:
           type: string
         ig_handle:
           type: string
+        email:
+          type: string
         wants_class_info:
           type: boolean
         anomaly_card:
           $ref: "#/components/schemas/AnomalyCard"
+        active_entry_id:
+          type: string
         created_at:
           type: string
 
@@ -471,6 +536,10 @@ components:
           $ref: "#/components/schemas/AnomalyCard"
         created_at:
           type: string
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/Entry"
         submission:
           $ref: "#/components/schemas/Submission"
         prize_basic:
@@ -480,14 +549,19 @@ components:
 
     SubmissionInput:
       type: object
-      required: [participant_id, image_url, ig_post_url]
+      required: [participant_id, entry_id, image_url, ig_tag_confirmed]
       properties:
         participant_id:
+          type: string
+        entry_id:
           type: string
         image_url:
           type: string
         ig_post_url:
           type: string
+          nullable: true
+        ig_tag_confirmed:
+          type: boolean
 
     Submission:
       type: object
@@ -648,6 +722,10 @@ components:
           type: string
         participant_ig:
           type: string
+        participant_email:
+          type: string
+        entry_number:
+          type: ["integer", "null"]
         anomaly_emoji:
           type: string
         anomaly_text:
@@ -655,7 +733,7 @@ components:
         image_url:
           type: string
         ig_post_url:
-          type: string
+          type: ["string", "null"]
         status:
           type: string
         winner_category:
@@ -683,6 +761,10 @@ components:
           type: string
         ig_handle:
           type: string
+        email:
+          type: string
+        entry_count:
+          type: integer
         wants_class_info:
           type: boolean
         anomaly_emoji:

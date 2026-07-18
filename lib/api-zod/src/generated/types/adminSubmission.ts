@@ -11,10 +11,14 @@ export interface AdminSubmission {
   participant_id: string;
   participant_name: string;
   participant_ig: string;
+  participant_email?: string;
+  /** @nullable */
+  entry_number?: number | null;
   anomaly_emoji?: string;
   anomaly_text?: string;
   image_url: string;
-  ig_post_url: string;
+  /** @nullable */
+  ig_post_url: string | null;
   status: string;
   /** @nullable */
   winner_category?: string | null;

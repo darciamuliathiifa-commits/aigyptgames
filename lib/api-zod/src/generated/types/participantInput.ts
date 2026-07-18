@@ -11,5 +11,7 @@ export interface ParticipantInput {
   name: string;
   /** @minLength 1 */
   ig_handle: string;
+  /** @minLength 3 */
+  email: string;
   wants_class_info?: boolean;
 }

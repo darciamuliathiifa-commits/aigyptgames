@@ -161,7 +161,7 @@ export default function Submit() {
           participant_id: participantId,
           entry_id: resolvedEntryId,
           image_url: publicUrl,
-          ig_post_url: null,
+          ig_post_url: null as unknown as string, // backend selalu simpan null (konfirmasi via checkbox)
           ig_tag_confirmed: data.ig_tag_confirmed,
         }
       });

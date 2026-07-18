@@ -8,6 +8,8 @@
 
 export interface SubmissionInput {
   participant_id: string;
+  entry_id: string;
   image_url: string;
-  ig_post_url: string;
+  ig_post_url?: string | null;
+  ig_tag_confirmed: boolean;
 }

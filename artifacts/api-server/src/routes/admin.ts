@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { supabaseAdmin } from "../lib/supabase";
-import { requireAdmin } from "../lib/adminAuth";
+import { requireAdmin, createAdminToken, verifyAdminToken } from "../lib/adminAuth";
 import { logger } from "../lib/logger";
 
 const router = Router();
@@ -11,8 +11,7 @@ router.get("/admin/dev-login", (req: Request, res: Response) => {
     res.status(404).json({ error: "Not found" });
     return;
   }
-  const pw = process.env.ADMIN_PASSWORD ?? "devpass";
-  res.cookie("admin_token", pw, {
+  res.cookie("admin_token", createAdminToken(), {
     httpOnly: true,
     sameSite: "lax",
     maxAge: 8 * 60 * 60 * 1000,
@@ -35,7 +34,7 @@ router.post("/admin/login", (req: Request, res: Response) => {
     return;
   }
 
-  res.cookie("admin_token", process.env.ADMIN_PASSWORD, {
+  res.cookie("admin_token", createAdminToken(), {
     httpOnly: true,
     sameSite: "lax",
     maxAge: 8 * 60 * 60 * 1000, // 8 hours
@@ -53,8 +52,7 @@ router.post("/admin/logout", (_req, res) => {
 
 // GET /admin/auth
 router.get("/admin/auth", (req: Request, res: Response) => {
-  const token = req.cookies?.admin_token;
-  const authenticated = token === process.env.ADMIN_PASSWORD;
+  const authenticated = verifyAdminToken(req.cookies?.admin_token);
   res.json({ authenticated });
 });
 

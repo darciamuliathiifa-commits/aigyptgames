@@ -6,7 +6,7 @@ import { MissionStepper } from '@/components/MissionStepper';
 import { AnomalyCard } from '@/components/AnomalyCard';
 import { ExamplePostersCarousel } from '@/components/ExamplePostersCarousel';
 import { Footer } from '@/components/Footer';
-import { Copy, CheckCircle2 } from 'lucide-react';
+import { Copy, CheckCircle2, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Prompt() {

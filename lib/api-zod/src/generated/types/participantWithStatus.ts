@@ -7,6 +7,7 @@
  */
 import type { AnomalyCard } from './anomalyCard';
 import type { ClaimedPrize } from './claimedPrize';
+import type { Entry } from './entry';
 import type { Submission } from './submission';
 
 export interface ParticipantWithStatus {
@@ -16,6 +17,7 @@ export interface ParticipantWithStatus {
   wants_class_info?: boolean;
   anomaly_card?: AnomalyCard;
   created_at: string;
+  entries?: Entry[];
   submission?: Submission;
   prize_basic?: ClaimedPrize;
   prize_premium?: ClaimedPrize;

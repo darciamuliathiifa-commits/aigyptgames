@@ -14,7 +14,7 @@ export interface ParticipantInput {
   name: string;
   /** @minLength 1 */
   ig_handle: string;
-  /** @minLength 1 */
+  /** @minLength 3 */
   email: string;
   wants_class_info?: boolean;
 }
@@ -25,23 +25,12 @@ export interface AnomalyCard {
   text: string;
 }
 
-export interface Participant {
-  id: string;
-  name: string;
-  ig_handle: string;
-  email?: string;
-  wants_class_info?: boolean;
-  anomaly_card?: AnomalyCard;
-  created_at: string;
-  /** ID entry pertama yang baru saja dibuat */
-  active_entry_id?: string;
-}
-
 export interface EntrySubmission {
   id: string;
   entry_id?: string;
   image_url: string;
-  ig_post_url: string;
+  /** @nullable */
+  ig_post_url?: string | null;
   status: string;
   /** @nullable */
   winner_category?: string | null;
@@ -52,14 +41,36 @@ export interface EntrySubmission {
 export interface Entry {
   id: string;
   entry_number: number;
-  anomaly_card?: AnomalyCard | null;
-  submission?: EntrySubmission | null;
+  anomaly_card?: AnomalyCard;
+  submission?: EntrySubmission;
+  created_at: string;
+}
+
+export interface EntryInput {
+  participant_id: string;
+}
+
+export interface EntryResult {
+  id: string;
+  entry_number: number;
+  participant_id: string;
+  created_at: string;
+  anomaly_card: AnomalyCard;
+}
+
+export interface Participant {
+  id: string;
+  name: string;
+  ig_handle: string;
+  email?: string;
+  wants_class_info?: boolean;
+  anomaly_card?: AnomalyCard;
+  active_entry_id?: string;
   created_at: string;
 }
 
 export interface Submission {
   id: string;
-  entry_id?: string;
   participant_id: string;
   image_url: string;
   ig_post_url: string;
@@ -78,14 +89,10 @@ export interface ParticipantWithStatus {
   id: string;
   name: string;
   ig_handle: string;
-  email?: string;
   wants_class_info?: boolean;
-  /** Backward compat: first entry's anomaly card */
   anomaly_card?: AnomalyCard;
   created_at: string;
-  /** All entries for this participant */
   entries?: Entry[];
-  /** Backward compat: first entry's submission */
   submission?: Submission;
   prize_basic?: ClaimedPrize;
   prize_premium?: ClaimedPrize;
@@ -95,19 +102,8 @@ export interface SubmissionInput {
   participant_id: string;
   entry_id: string;
   image_url: string;
-  ig_post_url: string;
-}
-
-export interface EntryInput {
-  participant_id: string;
-}
-
-export interface EntryResult {
-  id: string;
-  entry_number: number;
-  participant_id: string;
-  anomaly_card: AnomalyCard;
-  created_at: string;
+  ig_post_url?: string | null;
+  ig_tag_confirmed: boolean;
 }
 
 export interface Settings {
@@ -178,16 +174,17 @@ export interface AdminAuthStatus {
 
 export interface AdminSubmission {
   id: string;
-  /** Entry number (1-3) */
-  entry_number?: number | null;
   participant_id: string;
   participant_name: string;
   participant_ig: string;
   participant_email?: string;
+  /** @nullable */
+  entry_number?: number | null;
   anomaly_emoji?: string;
   anomaly_text?: string;
   image_url: string;
-  ig_post_url: string;
+  /** @nullable */
+  ig_post_url: string | null;
   status: string;
   /** @nullable */
   winner_category?: string | null;
@@ -206,8 +203,8 @@ export interface AdminParticipant {
   name: string;
   ig_handle: string;
   email?: string;
-  wants_class_info: boolean;
   entry_count?: number;
+  wants_class_info: boolean;
   anomaly_emoji?: string;
   anomaly_text?: string;
   /** @nullable */
@@ -258,3 +255,4 @@ export interface AdminSettingsInput {
 export type AdminListSubmissionsParams = {
 status?: string;
 };
+

@@ -10,6 +10,8 @@ export interface AdminParticipant {
   id: string;
   name: string;
   ig_handle: string;
+  email?: string;
+  entry_count?: number;
   wants_class_info: boolean;
   anomaly_emoji?: string;
   anomaly_text?: string;

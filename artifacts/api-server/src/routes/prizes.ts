@@ -74,10 +74,15 @@ router.post("/prize/claim", async (req, res) => {
     return;
   }
 
-  const { error: updateErr } = await supabaseAdmin
+  // Guard `claimed_by is null` di UPDATE supaya dua request bersamaan
+  // tidak bisa dapat kode yang sama (race condition). Kalau kode keburu
+  // diambil request lain, `data` kosong → suruh coba lagi.
+  const { data: claimed, error: updateErr } = await supabaseAdmin
     .from("prize_codes")
     .update({ claimed_by: participant_id, claimed_at: new Date().toISOString() })
-    .eq("id", availableCode.id);
+    .eq("id", availableCode.id)
+    .is("claimed_by", null)
+    .select("code, tier");
 
   if (updateErr) {
     logger.error({ updateErr }, "Failed to assign prize code");
@@ -85,7 +90,12 @@ router.post("/prize/claim", async (req, res) => {
     return;
   }
 
-  res.json({ code: availableCode.code, tier: availableCode.tier });
+  if (!claimed || claimed.length === 0) {
+    res.status(409).json({ error: "Kode keburu diambil. Coba klaim lagi ya!" });
+    return;
+  }
+
+  res.json({ code: claimed[0].code, tier: claimed[0].tier });
 });
 
 export default router;

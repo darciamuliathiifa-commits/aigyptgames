@@ -9,8 +9,8 @@ import { useQueryClient } from '@tanstack/react-query';
 
 export default function Live() {
   const queryClient = useQueryClient();
-  const { data: gallery, refetch: refetchGallery } = useGetGallery({ query: { refetchInterval: 30000 }});
-  const { data: leaderboard, refetch: refetchLeaderboard } = useGetLeaderboard({ query: { refetchInterval: 30000 }});
+  const { data: gallery, refetch: refetchGallery } = useGetGallery({ query: { refetchInterval: 30000 } as never });
+  const { data: leaderboard, refetch: refetchLeaderboard } = useGetLeaderboard({ query: { refetchInterval: 30000 } as never });
   const { data: settings } = useGetSettings();
 
   const [qrCodeUrl, setQrCodeUrl] = useState('');
@@ -214,7 +214,7 @@ export default function Live() {
         )}
       </div>
 
-      <style dangerouslySetInline={{__html: `
+      <style dangerouslySetInnerHTML={{__html: `
         @keyframes scroll-vertical {
           0% { transform: translateY(0); }
           100% { transform: translateY(-50%); }

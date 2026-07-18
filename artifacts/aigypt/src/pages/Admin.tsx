@@ -108,7 +108,7 @@ function AdminDashboard() {
 }
 
 function TabVerifikasi() {
-  const { data: pending, isLoading } = useAdminListSubmissions({ query: { status: 'pending' } });
+  const { data: pending, isLoading } = useAdminListSubmissions({ status: 'pending' });
   const updateMutation = useAdminUpdateSubmission();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -150,7 +150,7 @@ function TabVerifikasi() {
               )}
             </div>
             <a
-              href={sub.ig_post_url}
+              href={sub.ig_post_url ?? undefined}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 bg-secondary rounded-lg hover:bg-secondary/80 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -191,7 +191,7 @@ function TabVerifikasi() {
 function TabVoting() {
   const { data: settings } = useGetSettings();
   const updateSettings = useAdminUpdateSettings();
-  const { data: verified, isLoading } = useAdminListSubmissions({ query: { status: 'verified' } });
+  const { data: verified, isLoading } = useAdminListSubmissions({ status: 'verified' });
   const updateSub = useAdminUpdateSubmission();
   const queryClient = useQueryClient();
   const { toast } = useToast();
