@@ -226,8 +226,9 @@ export function HeroMarqueeStrip() {
 
   if (posters.length === 0) return null;
 
-  // Duplicate for seamless loop
-  const doubled = [...posters, ...posters, ...posters];
+  // 2x cukup buat loop mulus (translateX -50%), sebelumnya 3x = 1/3 gambar
+  // sia-sia di-download tanpa pernah kelihatan.
+  const doubled = [...posters, ...posters];
 
   return (
     <div className="lg:hidden w-full overflow-hidden mt-5 mb-2">

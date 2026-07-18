@@ -42,7 +42,32 @@
 - File video besar (`aigyptchallenge-*.mp4` 21 MB, `aigypt-video/.../bg-abstract.mp4` 41 MB)
   TIDAK diikutkan di paket ini — sebaiknya memang dihapus dari repo (bikin clone/deploy berat).
 
-## Checklist deploy
+## Mobile performance (18 Jul, batch 2)
+Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
+
+- **Route-based code splitting penuh**: sebelumnya cuma `Admin`+`Live` yang lazy,
+  jadi `Home`/`Join`/`Submit`/`Status`/`Prompt` (dengan `framer-motion` +
+  `canvas-confetti` + form libs) ikut ke-download begitu buka `/`. Sekarang
+  SEMUA halaman lazy-load kecuali `Hub`. Main bundle gzip turun **251 KB → 168 KB
+  (-33%)** untuk load pertama.
+- **Marquee poster contoh di mobile duplikasi gambar 3x → 2x** — sebelumnya
+  1/3 gambar di-download tapi nggak pernah kelihatan (loop cuma butuh 2 salinan,
+  keyframes `marquee` memang `translateX(-50%)`).
+- **Blur background dikecilin khusus mobile** (`index.css`, media query
+  `max-width: 768px`): blur 120-160px → 40-60px, animasi `blob-drift` dimatikan
+  di layar sempit. Blur segede itu mahal buat GPU HP kelas menengah — efek
+  glow-nya tetap ada, cuma versi ringannya.
+
+### Belum sempat, kalau mau lanjut lagi:
+- Chunk vendor (`proxy-*.js` 126 KB, `types-*.js` 82 KB — dari generated API
+  client/zod) masih ikut ke-load di halaman pertama karena Hub manggil
+  `useGetSettings`/`useGetLeaderboard`. Bisa dipangkas lebih jauh dengan
+  `manualChunks` di `vite.config.ts` kalau builder mau ngoprek lebih dalam.
+- Gambar contoh poster (`example_posters`) di-serve apa adanya dari Supabase
+  Storage tanpa resize. Supabase Storage punya fitur image transform
+  (`?width=&quality=`) — worth dipakai biar gambar yang di-download HP
+  otomatis lebih kecil daripada file asli.
+
 1. Jalankan `supabase/migration_v4.sql` di Supabase SQL Editor.
 2. Set storage limit bucket `posters` (lihat atas).
 3. Pastikan env `ADMIN_SECRET` terisi di Vercel (dipakai signing token admin sekarang).

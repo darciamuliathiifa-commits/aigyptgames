@@ -5,16 +5,18 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { Suspense, lazy } from 'react';
 
 import Hub from '@/pages/Hub';
-import Home from '@/pages/Home';
-import Join from '@/pages/Join';
-import Prompt from '@/pages/Prompt';
-import Submit from '@/pages/Submit';
-import Status from '@/pages/Status';
 import Leaderboard from '@/pages/Leaderboard';
 import Gallery from '@/pages/Gallery';
 import NotFound from '@/pages/not-found';
 
-// Halaman berat di-lazy-load supaya bundle utama lebih kecil
+// Halaman berat di-lazy-load supaya bundle utama (Hub) lebih ringan di HP.
+// Home cuma butuh framer-motion/confetti/dsb via Join-Submit-Status, jadi
+// semua halaman selain Hub di-split terpisah.
+const Home = lazy(() => import('@/pages/Home'));
+const Join = lazy(() => import('@/pages/Join'));
+const Prompt = lazy(() => import('@/pages/Prompt'));
+const Submit = lazy(() => import('@/pages/Submit'));
+const Status = lazy(() => import('@/pages/Status'));
 const Live = lazy(() => import('@/pages/Live'));
 const Admin = lazy(() => import('@/pages/Admin'));
 

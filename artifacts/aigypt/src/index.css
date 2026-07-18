@@ -273,3 +273,20 @@
   }
   .scrollbar-hide::-webkit-scrollbar { display: none; }
 }
+
+/* ── Mobile perf: blur radius segede ini berat di GPU HP kelas menengah.
+   Kecilin blur + matiin drift animation di layar sempit, glow-nya tetap
+   kelihatan tapi jauh lebih ringan buat di-render. ── */
+@media (max-width: 768px) {
+  [class*="blur-[160px]"],
+  [class*="blur-[140px]"] {
+    filter: blur(60px) !important;
+  }
+  [class*="blur-[120px]"],
+  [class*="blur-[100px]"] {
+    filter: blur(40px) !important;
+  }
+  [style*="blob-drift"] {
+    animation: none !important;
+  }
+}
