@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { GalleryEntry, LeaderboardEntry } from '@workspace/api-client-react';
+import { X } from 'lucide-react';
 
 interface SubmissionCardProps {
   entry: GalleryEntry | LeaderboardEntry;
@@ -10,6 +12,114 @@ interface SubmissionCardProps {
   className?: string;
 }
 
+/** Popup full-size buat lihat poster + vote langsung dari dalam lightbox. */
+function SubmissionLightbox({
+  entry,
+  rank,
+  onVote,
+  hasVoted,
+  votingOpen,
+  onClose,
+}: SubmissionCardProps & { onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 w-11 h-11 bg-card rounded-full flex items-center justify-center hover:bg-secondary transition-colors z-10"
+        aria-label="Tutup"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="max-w-sm w-full rounded-2xl overflow-hidden bg-card border border-border shadow-[0_0_60px_rgba(124,58,237,0.4)] flex flex-col max-h-[90dvh]"
+      >
+        <div className="relative w-full overflow-hidden bg-muted shrink-0">
+          <img
+            src={entry.image_url}
+            alt={`Poster by ${entry.name}`}
+            className="w-full h-auto max-h-[65dvh] object-contain bg-black"
+          />
+          {rank && (
+            <div className={cn(
+              "absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center font-display font-bold text-sm shadow-md",
+              rank === 1 ? "bg-yellow-500 text-black" :
+              rank === 2 ? "bg-gray-300 text-black" :
+              rank === 3 ? "bg-amber-700 text-white" :
+              "bg-black/50 text-white backdrop-blur-sm border border-white/10"
+            )}>
+              {rank}
+            </div>
+          )}
+          <div className="absolute top-3 right-14 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-lg shadow-md">
+            {entry.emoji}
+          </div>
+        </div>
+
+        <div className="p-4 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h4 className="font-display font-bold text-lg leading-tight truncate">{entry.name}</h4>
+            <a
+              href={`https://instagram.com/${entry.ig_handle.replace('@', '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-primary text-sm hover:underline block truncate"
+            >
+              {entry.ig_handle}
+            </a>
+            {entry.winner_category && (
+              <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-bold rounded">
+                <span>🏆</span> {entry.winner_category}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col items-end shrink-0">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Votes</span>
+            <span className="font-display text-xl font-bold text-foreground">
+              {entry.vote_count.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        {onVote && votingOpen && (
+          <div className="px-4 pb-4">
+            <button
+              onClick={() => onVote()}
+              className={cn(
+                "w-full min-h-[48px] rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2",
+                hasVoted
+                  ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(124,58,237,0.4)]"
+                  : "bg-secondary text-secondary-foreground hover:bg-primary/20 hover:text-primary"
+              )}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={hasVoted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("w-4 h-4", hasVoted && "animate-pulse")}>
+                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+              </svg>
+              {hasVoted ? "Voted!" : "Vote"}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function SubmissionCard({ 
   entry, 
   rank, 
@@ -18,11 +128,18 @@ export function SubmissionCard({
   votingOpen = true,
   className 
 }: SubmissionCardProps) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
   return (
     <div className={cn("group relative rounded-2xl overflow-hidden bg-card border border-border shadow-sm flex flex-col transition-all hover:border-primary/50 hover:shadow-[0_0_15px_rgba(124,58,237,0.2)]", className)}>
       
-      {/* Image container */}
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
+      {/* Image container — klik buat lihat full-size di popup */}
+      <button
+        type="button"
+        onClick={() => setLightboxOpen(true)}
+        className="relative aspect-[4/5] w-full overflow-hidden bg-muted text-left cursor-pointer"
+        aria-label={`Lihat poster ${entry.name} lebih besar`}
+      >
         <img 
           src={entry.image_url} 
           alt={`Poster by ${entry.name}`}
@@ -57,20 +174,30 @@ export function SubmissionCard({
         <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-lg shadow-md">
           {entry.emoji}
         </div>
+
+        {/* Hint icon — muncul pas hover, kasih tau kartu ini bisa diklik */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+          </div>
+        </div>
         
         {/* User info overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <h4 className="font-display font-bold text-white truncate text-lg leading-tight">{entry.name}</h4>
-          <a 
-            href={`https://instagram.com/${entry.ig_handle.replace('@', '')}`}
-            target="_blank"
-            rel="noopener noreferrer" 
-            className="text-primary-foreground/80 text-sm hover:text-primary transition-colors block truncate"
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(`https://instagram.com/${entry.ig_handle.replace('@', '')}`, '_blank', 'noopener,noreferrer');
+            }}
+            className="text-primary-foreground/80 text-sm hover:text-primary transition-colors block truncate cursor-pointer"
           >
             {entry.ig_handle}
-          </a>
+          </span>
         </div>
-      </div>
+      </button>
       
       {/* Vote section */}
       <div className="p-4 bg-card flex items-center justify-between mt-auto">
@@ -113,6 +240,17 @@ export function SubmissionCard({
            </div>
         )}
       </div>
+
+      {lightboxOpen && (
+        <SubmissionLightbox
+          entry={entry}
+          rank={rank}
+          onVote={onVote}
+          hasVoted={hasVoted}
+          votingOpen={votingOpen}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 }

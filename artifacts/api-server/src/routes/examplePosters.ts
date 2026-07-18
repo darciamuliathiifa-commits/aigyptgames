@@ -54,8 +54,10 @@ router.post("/admin/example-posters", requireAdmin, async (req: Request, res: Re
   const ext = mime_type.split("/")[1] || "jpg";
   const filename = `example-posters/${Date.now()}.${ext}`;
 
+  // Bucket "posters" (dibuat di migration.sql) — folder example-posters/
+  // dipakai supaya nggak bentrok sama nama file upload peserta di root bucket.
   const { error: uploadError } = await supabaseAdmin.storage
-    .from("submissions")
+    .from("posters")
     .upload(filename, buffer, { contentType: mime_type, upsert: false });
 
   if (uploadError) {
@@ -64,7 +66,7 @@ router.post("/admin/example-posters", requireAdmin, async (req: Request, res: Re
     return;
   }
 
-  const { data: urlData } = supabaseAdmin.storage.from("submissions").getPublicUrl(filename);
+  const { data: urlData } = supabaseAdmin.storage.from("posters").getPublicUrl(filename);
   const image_url = urlData.publicUrl;
 
   const { data, error } = await supabaseAdmin

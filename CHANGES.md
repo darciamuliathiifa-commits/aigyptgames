@@ -68,6 +68,41 @@ Diukur dengan `pnpm run build:vercel` sebelum/sesudah — bukan tebakan:
   (`?width=&quality=`) — worth dipakai biar gambar yang di-download HP
   otomatis lebih kecil daripada file asli.
 
+## Fitur baru (18 Jul, batch 5)
+- **Popup lightbox buat lihat poster full-size** — sekarang berlaku di
+  `SubmissionCard`, jadi otomatis kepakai di **Galeri** dan **Leaderboard**
+  sekaligus (satu komponen, dua halaman). Klik gambar poster → muncul popup
+  gede di tengah layar isinya foto full, nama, IG handle, badge juara (kalau
+  ada), jumlah vote, dan tombol Vote (kalau voting lagi buka) — jadi bisa
+  langsung vote dari dalam popup tanpa nutup dulu.
+  Cara nutup: klik tombol X, klik area gelap di luar kartu, atau tekan Esc.
+  Klik nama IG di dalam popup tetap buka Instagram di tab baru (nggak ikut
+  nutup popup).
+
+## Bug fix (18 Jul, batch 4)
+- **"Bucket not found" pas upload Contoh Karya di `/admin`**: `examplePosters.ts`
+  upload ke bucket storage `"submissions"` yang **nggak pernah dibuat** —
+  yang beneran ada cuma bucket `"posters"` (dibikin di `production.sql`,
+  dipakai juga buat upload poster peserta). Kemungkinan typo waktu nyalin
+  nama tabel DB (`submissions`) jadi disangka nama bucket. Fix: upload
+  sekarang ke bucket `posters`, folder `example-posters/` biar nggak
+  numplek sama file upload peserta. Ini murni bug kode — nggak perlu
+  bikin bucket baru di Supabase, cukup deploy ulang.
+
+## Encoding fix (18 Jul, batch 3)
+- **Mojibake di `Prompt.tsx` dan `Admin.tsx`**: teks kayak `ðŸ“¸`, `â€"` yang
+  muncul di UI (bukan cuma emoji rusak, dash `—` dan `…` juga ikut korup)
+  itu file aslinya sempat disave lewat editor yang salah baca encoding-nya
+  (dibaca sebagai Windows-1252, ditulis ulang sebagai UTF-8 → double-encoded).
+  Sudah diperbaiki balik ke UTF-8 murni: 📸 💡 🎉 🏆 🖼️ dan tanda baca
+  em-dash/ellipsis sekarang tampil normal. Cek langsung di halaman `/prompt`
+  dan tab Verifikasi/Galeri di `/admin`.
+- **Saran ke depan**: kalau pakai Replit Agent buat edit file lagi, pastikan
+  editor/terminal-nya set locale UTF-8. Kalau muncul lagi karakter aneh
+  kayak `Ã¢â‚¬` atau `ðŸ`, itu tanda mojibake — jangan dibiarin, gampang
+  menjalar ke file lain tiap kali disave ulang.
+
+## Checklist deploy
 1. Jalankan `supabase/migration_v4.sql` di Supabase SQL Editor.
 2. Set storage limit bucket `posters` (lihat atas).
 3. Pastikan env `ADMIN_SECRET` terisi di Vercel (dipakai signing token admin sekarang).

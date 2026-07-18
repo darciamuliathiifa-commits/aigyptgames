@@ -48,7 +48,7 @@ export default function Prompt() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center text-center px-6 text-sm text-muted-foreground">
         {status === 404
-          ? 'Sesi lama tidak ditemukan â€” mengalihkan ke pendaftaranâ€¦'
+          ? 'Sesi lama tidak ditemukan — mengalihkan ke pendaftaran…'
           : 'Gagal memuat data. Coba refresh halaman ini.'}
       </div>
     );
@@ -110,13 +110,13 @@ Kualitas: ultra detail, komposisi poster profesional, aspect ratio 4:5.`;
           <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center shrink-0">1</div>
-              <h3 className="font-bold">Foto Tenant AIGYPT Pake HP Lo ðŸ“¸</h3>
+              <h3 className="font-bold">Foto Tenant AIGYPT Pake HP Lo 📸</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-              Datengin tenant AIGYPT, foto booth-nya langsung pake kamera HP lo. Bebas angle-nya â€” makin unik makin bagus. Foto ini yang bakal jadi bahan dasar poster lo.
+              Datengin tenant AIGYPT, foto booth-nya langsung pake kamera HP lo. Bebas angle-nya — makin unik makin bagus. Foto ini yang bakal jadi bahan dasar poster lo.
             </p>
             <p className="text-xs text-muted-foreground/70 italic">
-              ðŸ’¡ Pastikan logo/tulisan AIGYPT keliatan jelas di fotonya.
+              💡 Pastikan logo/tulisan AIGYPT keliatan jelas di fotonya.
             </p>
           </div>
 

@@ -126,7 +126,7 @@ function TabVerifikasi() {
 
   if (!pending || pending.length === 0) return (
     <div className="text-center py-20 text-muted-foreground border border-dashed rounded-xl">
-      Tidak ada antrian verifikasi. Yey! ðŸŽ‰
+      Tidak ada antrian verifikasi. Yey! 🎉
     </div>
   );
 
@@ -284,9 +284,9 @@ function TabVoting() {
                         className="bg-input border border-border rounded p-2 text-sm focus:border-primary w-full max-w-[200px]"
                       >
                         <option value="">- Bukan Juara -</option>
-                        <option value="Paling Kreatif">ðŸ† Paling Kreatif</option>
-                        <option value="Paling Absurd">ðŸ† Paling Absurd</option>
-                        <option value="Paling Niat">ðŸ† Paling Niat</option>
+                        <option value="Paling Kreatif">🏆 Paling Kreatif</option>
+                        <option value="Paling Absurd">🏆 Paling Absurd</option>
+                        <option value="Paling Niat">🏆 Paling Niat</option>
                       </select>
                     </td>
                   </tr>
@@ -502,7 +502,7 @@ function TabContohKarya() {
               <img src={previewUrl} className="w-full h-full object-cover" alt="preview" />
             ) : (
               <div className="text-center text-muted-foreground text-sm px-4">
-                <div className="text-3xl mb-2">ðŸ–¼ï¸</div>
+                <div className="text-3xl mb-2">🖼️</div>
                 Klik untuk pilih gambar
               </div>
             )}
@@ -532,7 +532,7 @@ function TabContohKarya() {
             className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-lg disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {uploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {uploading ? 'Menguploadâ€¦' : 'Tambahkan'}
+            {uploading ? 'Mengupload…' : 'Tambahkan'}
           </button>
         </div>
       </div>
